@@ -1,309 +1,183 @@
 /**
- * Nova Habitar - Incorporadora de Alto Padrão
- * Design: Luxury Real Estate - Dark Navy + Gold + Cream
- * Colors: Navy #0f1b2d, Gold #c6a667, Cream #f5f3ee
- * Typography: Playfair Display (headings) + Inter (body)
- * Layout: Full-width sections with asymmetric content blocks
+ * Nova Habitar — Home Page
+ * Design Principles: Simplicidade, Memorabilidade, Versatilidade, Adequação, Consistência, Verdade Estética
+ * Palette: Navy #0F1B2D | Gold #C6A667 (≤5%) | Graphite #2B2F36 | Off-White #F5F3EE
+ * Typography: Montserrat Bold/Medium (titles, +letter-spacing) | Montserrat Regular/Light (body, line-height ≥1.6)
+ * No rounded corners — precision and linearity
+ * No green — only Navy, Gold, Graphite, Off-White
  */
 
-import { useState, useEffect } from "react";
+import { useLang } from "@/contexts/LangContext";
+import AnimatedHero from "@/components/AnimatedHero";
 import {
-  Building2,
-  MapPin,
-  Mail,
-  Calendar,
-  Layers,
-  CheckCircle2,
-  ArrowRight,
-  Menu,
-  X,
   ClipboardList,
   Ruler,
   Briefcase,
   HardHat,
+  CheckCircle,
+  ArrowRight,
+  MapPin,
+  Mail,
+  Calendar,
+  ShieldCheck,
+  Zap,
+  FileCheck,
+  Leaf,
+  Globe,
+  TrendingUp,
+  Building,
+  CheckSquare,
 } from "lucide-react";
 
-// Image URLs from the original site
-const HERO_IMAGE = "https://cdn.abacus.ai/images/82408a85-1d28-4ae0-a10b-32c472db4848.png";
-const PROJECT_1_IMAGE = "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png";
-const PROJECT_2_IMAGE = "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png";
-const PROJECT_3_IMAGE = "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png";
-const STRUCTURE_IMAGE = "https://cdn.abacus.ai/images/da52a73e-44a8-49f3-aa6d-63b77ac7812f.png";
+// Image constants
+const PROJECT_1 = "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png";
+const PROJECT_2 = "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png";
+const PROJECT_3 = "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png";
 const ABOUT_IMAGE = "https://cdn.abacus.ai/images/9ba8e268-af7b-49c3-901e-5ff1797d13fb.png";
+const STRUCTURE_IMAGE = "https://cdn.abacus.ai/images/da52a73e-44a8-49f3-aa6d-63b77ac7812f.png";
+const LOGO_LIGHT =
+  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/LkQQIgSogkaYgkRe.png?Expires=1804165690&Signature=DzaUbYoKfkMx-J-tjtEWrQXmAAmR41-ixf3NrBNWjC7eEoBzBthg01tYX6k~RNDqnUGDog33khYB718xnveXcZ-Qwm87Eka2t009RqsxpLkqSG4BFt4UCSnNcpCyHLq37VwjctQCyYakfBuIBley~WXjbAe7kp3FOE3d53MYDSTNgLXAOsLg2D6-ePeht0JK55SBRad-Zdb8U5-Yet1kZRIIaG0m-RXgBix2TEGWUFaS66CXlJXs9SIXWGMJehQ9OZ5MosF5zzBnkcauQaGfix~lDgcNaE4ghCKVr9DiBdFCKgccdzhNkTXFGl9exZU25hfLYL~924t5O3H-jzvvWg__&Key-Pair-Id=K2HSFNDJXOU9YS";
+const LOGO_DARK =
+  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/CdFMmFddwYvgYETL.png?Expires=1804165690&Signature=cV49yLhvX-VzQthXEiyqjxknJOdktJRww9dPuGaPkTatBAoEsnT6oJ9se9dg9qZy~Jxt-cVENaLE9QSIdxo1qlLOxDLFnLH~zySFtoQpBMJOK~gLJDEPQ~jVYo~D2JA42wjFDjYIaXGnovRgXhWcqeq014kb1T-gQfkvF85ojHtjKO96-Hui9E5eofxvpD8PBlFl2aR-1RNIAxWMjPom7eut4Du3uPpE9m2P0ONoW8PGCSU8btcLm39Nm9b49Q1eNnECibg-DODDnJEFHzFCkxMlLCvvTYwXeUyjWTEgbYFCIX6cUXCYrFcLNp7g43H-rSPfNw1E0Vr6Yxxa~wveIw__&Key-Pair-Id=K2HSFNDJXOU9YS";
+
+const ACTUATION_ICONS = [
+  <ClipboardList size={22} />,
+  <Ruler size={22} />,
+  <Briefcase size={22} />,
+  <HardHat size={22} />,
+  <CheckCircle size={22} />,
+];
+
+const DIFFERENTIAL_ICONS = [
+  <ShieldCheck size={22} />,
+  <Zap size={22} />,
+  <FileCheck size={22} />,
+  <Building size={22} />,
+];
+
+const SUSTAINABILITY_ICONS = [
+  <Leaf size={22} />,
+  <Globe size={22} />,
+  <Building size={22} />,
+  <TrendingUp size={22} />,
+];
+
+const PROJECT_IMAGES = [PROJECT_1, PROJECT_2, PROJECT_3];
+
+function SectionTag({ label }: { label: string }) {
+  return (
+    <div className="nh-tag">{label}</div>
+  );
+}
 
 export default function Home() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const { t } = useLang();
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+  const statusColor = (status: string) => {
+    if (status === "delivered") return { bg: "rgba(198,166,103,0.12)", color: "#C6A667" };
+    if (status === "underConstruction") return { bg: "rgba(15,27,45,0.08)", color: "#2B2F36" };
+    return { bg: "rgba(15,27,45,0.06)", color: "#2B2F36" };
+  };
+
+  const statusLabel = (status: string) => {
+    const map: Record<string, string> = {
+      delivered: t.projects.statusLabels.delivered,
+      inDevelopment: t.projects.statusLabels.inDevelopment,
+      underConstruction: t.projects.statusLabels.underConstruction,
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-    setMobileMenuOpen(false);
+    return map[status] ?? status;
   };
 
   return (
-    <div className="min-h-screen font-body" style={{ fontFamily: "'Inter', Arial, Helvetica, sans-serif" }}>
-      {/* ===== HEADER / NAVBAR ===== */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-        style={{
-          backgroundColor: scrolled ? "rgba(15, 27, 45, 0.97)" : "transparent",
-          backdropFilter: scrolled ? "blur(8px)" : "none",
-          borderBottom: scrolled ? "1px solid rgba(198, 166, 103, 0.15)" : "none",
-        }}
-      >
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <a
-              href="#inicio"
-              onClick={(e) => { e.preventDefault(); scrollToSection("inicio"); }}
-              className="flex items-center gap-2.5 text-white no-underline"
-            >
-              <div
-                className="flex items-center justify-center w-8 h-8 border"
-                style={{ borderColor: "#c6a667" }}
-              >
-                <Building2 size={16} style={{ color: "#c6a667" }} />
-              </div>
-              <div>
-                <div className="font-semibold text-sm tracking-wide text-white leading-tight">
-                  Nova Habitar
-                </div>
-                <div className="text-xs tracking-widest" style={{ color: "#c6a667", fontSize: "0.6rem" }}>
-                  CONFIABILIDADE & REFINO
-                </div>
-              </div>
-            </a>
+    <div style={{ backgroundColor: "#F5F3EE" }}>
+      {/* ── HERO ── */}
+      <AnimatedHero />
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8">
-              {[
-                { label: "Início", id: "inicio" },
-                { label: "Projetos", id: "projetos" },
-                { label: "Estrutura", id: "estrutura" },
-                { label: "Quem Somos", id: "quem-somos" },
-                { label: "Contato", id: "contato" },
-              ].map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
-                  className="text-sm font-medium transition-colors no-underline"
-                  style={{ color: "rgba(255,255,255,0.85)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#c6a667")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.85)")}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </nav>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden text-white p-2"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden" style={{ backgroundColor: "rgba(15, 27, 45, 0.98)" }}>
-            <div className="container mx-auto px-6 py-4 flex flex-col gap-4">
-              {[
-                { label: "Início", id: "inicio" },
-                { label: "Projetos", id: "projetos" },
-                { label: "Estrutura", id: "estrutura" },
-                { label: "Quem Somos", id: "quem-somos" },
-                { label: "Contato", id: "contato" },
-              ].map((item) => (
-                <a
-                  key={item.id}
-                  href={`#${item.id}`}
-                  onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
-                  className="text-sm font-medium py-2 border-b no-underline"
-                  style={{ color: "rgba(255,255,255,0.85)", borderColor: "rgba(255,255,255,0.1)" }}
-                >
-                  {item.label}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* ===== HERO SECTION ===== */}
-      <section
-        id="inicio"
-        className="relative min-h-screen flex items-center"
-        style={{ minHeight: "100vh" }}
-      >
-        {/* Background Image */}
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src={HERO_IMAGE}
-            alt="Edifício residencial de alto padrão"
-            className="w-full h-full object-cover object-center"
-          />
-          {/* Gradient Overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to right, rgba(15, 27, 45, 0.88) 50%, rgba(15, 27, 45, 0.45) 100%)",
-            }}
-          />
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-6 lg:px-8 max-w-7xl pt-24 pb-16">
-          <div className="max-w-2xl">
-            <h1
-              className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-            >
-              Estrutura que transforma projetos em ativos imobiliários{" "}
-              <span style={{ color: "#c6a667" }}>sólidos.</span>
-            </h1>
-            <p className="text-base md:text-lg mb-8" style={{ color: "rgba(246, 244, 239, 0.8)" }}>
-              Integramos planejamento, arquitetura, incorporação e execução com rigor técnico e previsibilidade.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 mb-12">
-              <a
-                href="#projetos"
-                onClick={(e) => { e.preventDefault(); scrollToSection("projetos"); }}
-                className="nova-btn-gold no-underline"
-                style={{
-                  backgroundColor: "#c6a667",
-                  color: "#0f1b2d",
-                  fontWeight: 600,
-                  padding: "0.75rem 1.75rem",
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.025em",
-                  transition: "all 0.2s ease",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                Ver projetos
-              </a>
-              <a
-                href="#contato"
-                onClick={(e) => { e.preventDefault(); scrollToSection("contato"); }}
-                className="no-underline"
-                style={{
-                  backgroundColor: "transparent",
-                  color: "#ffffff",
-                  fontWeight: 500,
-                  padding: "0.75rem 1.75rem",
-                  fontSize: "0.875rem",
-                  letterSpacing: "0.025em",
-                  transition: "all 0.2s ease",
-                  border: "1px solid rgba(255,255,255,0.5)",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                }}
-              >
-                Agendar conversa técnica
-              </a>
-            </div>
-
-            {/* Badges */}
-            <div className="flex flex-wrap gap-6">
-              {[
-                { icon: <Calendar size={14} />, text: "Desde 2012" },
-                { icon: <MapPin size={14} />, text: "Sede em São Gonçalo (RJ)" },
-                { icon: <Layers size={14} />, text: "Atuação integrada" },
-              ].map((badge, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-2 text-sm"
-                  style={{ color: "rgba(246, 244, 239, 0.7)" }}
-                >
-                  <span style={{ color: "#c6a667" }}>{badge.icon}</span>
-                  {badge.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== SERVICES SECTION ===== */}
-      <section id="servicos" style={{ backgroundColor: "#f5f3ee" }} className="py-20">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-14">
+      {/* ── ATUAÇÃO ── */}
+      <section id="atuacao" style={{ backgroundColor: "#0F1B2D", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div style={{ maxWidth: "640px", marginBottom: "3.5rem" }}>
+            <SectionTag label={t.actuation.tag} />
             <h2
-              className="font-display text-3xl md:text-4xl font-bold mb-4"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0f1b2d" }}
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
+                letterSpacing: "0.035em",
+                color: "#F5F3EE",
+                marginBottom: "1rem",
+              }}
             >
-              Atuação integrada em todo o ciclo do empreendimento.
+              {t.actuation.title}
             </h2>
-            <p className="text-base max-w-2xl mx-auto" style={{ color: "rgba(43, 47, 54, 0.7)" }}>
-              Da análise inicial à entrega, um método único para reduzir risco e assegurar padrão de qualidade.
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "0.9375rem",
+                lineHeight: 1.7,
+                color: "rgba(245,243,238,0.6)",
+              }}
+            >
+              {t.actuation.subtitle}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: <ClipboardList size={24} />,
-                title: "Planejamento",
-                desc: "Estruturação de cronogramas, riscos e governança, com suporte jurídico e PMO dedicado.",
-              },
-              {
-                icon: <Ruler size={24} />,
-                title: "Arquitetura",
-                desc: "Diretrizes de alto padrão, compatibilização com normas e especificação eficiente de materiais.",
-              },
-              {
-                icon: <Briefcase size={24} />,
-                title: "Incorporação",
-                desc: "Modelagem, stakeholders e conformidade para empreendimentos sólidos e bem estruturados.",
-              },
-              {
-                icon: <HardHat size={24} />,
-                title: "Construção",
-                desc: "Execução com boas práticas de engenharia, controle de custos e foco em QSMS.",
-              },
-            ].map((item, i) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: "1px",
+              backgroundColor: "rgba(198,166,103,0.1)",
+            }}
+          >
+            {t.actuation.items.map((item, i) => (
               <div
                 key={i}
-                className="bg-white p-6 rounded-sm"
                 style={{
-                  border: "1px solid rgba(232, 230, 225, 0.8)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  backgroundColor: "#0F1B2D",
+                  padding: "2rem 1.75rem",
+                  borderTop: "2px solid transparent",
+                  transition: "border-color 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderTopColor = "#C6A667";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.borderTopColor = "transparent";
                 }}
               >
                 <div
-                  className="mb-4 w-10 h-10 flex items-center justify-center"
-                  style={{ color: "#c6a667" }}
+                  style={{
+                    color: "#C6A667",
+                    marginBottom: "1rem",
+                    opacity: 0.85,
+                  }}
                 >
-                  {item.icon}
+                  {ACTUATION_ICONS[i]}
                 </div>
                 <h3
-                  className="font-semibold text-base mb-2"
-                  style={{ color: "#0f1b2d" }}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.9rem",
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    color: "#F5F3EE",
+                    marginBottom: "0.75rem",
+                  }}
                 >
                   {item.title}
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(43, 47, 54, 0.7)" }}>
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 300,
+                    fontSize: "0.85rem",
+                    lineHeight: 1.7,
+                    color: "rgba(245,243,238,0.55)",
+                  }}
+                >
                   {item.desc}
                 </p>
               </div>
@@ -312,322 +186,830 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== PROJECTS SECTION ===== */}
-      <section id="projetos" style={{ backgroundColor: "#f0ede6" }} className="py-20">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="text-center mb-14">
-            <h2
-              className="font-display text-3xl md:text-4xl font-bold mb-4"
-              style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0f1b2d" }}
+      {/* ── PROJETOS ── */}
+      <section id="projetos" style={{ backgroundColor: "#F5F3EE", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-end",
+              flexWrap: "wrap",
+              gap: "1.5rem",
+              marginBottom: "3rem",
+            }}
+          >
+            <div>
+              <SectionTag label={t.projects.tag} />
+              <h2
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
+                  letterSpacing: "0.035em",
+                  color: "#0F1B2D",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                {t.projects.title}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "0.9375rem",
+                  lineHeight: 1.7,
+                  color: "#2B2F36",
+                  maxWidth: "480px",
+                }}
+              >
+                {t.projects.subtitle}
+              </p>
+            </div>
+            <a
+              href="#projetos"
+              className="nh-btn-outline-dark"
+              style={{ flexShrink: 0 }}
             >
-              Projetos em destaque
+              {t.projects.viewAll} <ArrowRight size={14} />
+            </a>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {t.projects.items.map((project, i) => {
+              const sc = statusColor(project.status);
+              return (
+                <div
+                  key={i}
+                  style={{
+                    backgroundColor: "#ffffff",
+                    overflow: "hidden",
+                    border: "1px solid #E8E6E1",
+                    transition: "box-shadow 0.2s ease, transform 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.boxShadow = "0 8px 32px rgba(15,27,45,0.1)";
+                    el.style.transform = "translateY(-3px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.boxShadow = "none";
+                    el.style.transform = "translateY(0)";
+                  }}
+                >
+                  {/* Image */}
+                  <div style={{ position: "relative", height: "220px", overflow: "hidden" }}>
+                    <img
+                      src={PROJECT_IMAGES[i]}
+                      alt={project.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                    {/* Status badge */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "1rem",
+                        left: "1rem",
+                        backgroundColor: sc.bg,
+                        color: sc.color,
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 600,
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        padding: "0.3rem 0.75rem",
+                        backdropFilter: "blur(4px)",
+                        border: `1px solid ${sc.color}40`,
+                      }}
+                    >
+                      {statusLabel(project.status)}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div style={{ padding: "1.5rem" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                        color: "#2B2F36",
+                        opacity: 0.6,
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      <MapPin size={11} />
+                      {project.location}
+                    </div>
+                    <h3
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "1rem",
+                        letterSpacing: "0.03em",
+                        color: "#0F1B2D",
+                        marginBottom: "0.75rem",
+                      }}
+                    >
+                      {project.title}
+                    </h3>
+                    <p
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "0.8375rem",
+                        lineHeight: 1.65,
+                        color: "#2B2F36",
+                        marginBottom: "1rem",
+                      }}
+                    >
+                      {project.desc}
+                    </p>
+                    {/* Specs */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                      {project.specs.map((spec, si) => (
+                        <span
+                          key={si}
+                          style={{
+                            fontFamily: "'Montserrat', sans-serif",
+                            fontSize: "0.65rem",
+                            fontWeight: 600,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            color: "#0F1B2D",
+                            backgroundColor: "#F5F3EE",
+                            border: "1px solid #D8D6D1",
+                            padding: "0.25rem 0.6rem",
+                          }}
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ── DIFERENCIAIS ── */}
+      <section id="diferenciais" style={{ backgroundColor: "#E8E6E1", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "4rem",
+              alignItems: "center",
+            }}
+          >
+            {/* Left: Image */}
+            <div style={{ position: "relative" }}>
+              <img
+                src={STRUCTURE_IMAGE}
+                alt="Estrutura Nova Habitar"
+                style={{ width: "100%", height: "480px", objectFit: "cover" }}
+              />
+              {/* Gold accent bar */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  width: "3rem",
+                  height: "4px",
+                  backgroundColor: "#C6A667",
+                }}
+              />
+            </div>
+
+            {/* Right: Content */}
+            <div>
+              <SectionTag label={t.differentials.tag} />
+              <h2
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
+                  letterSpacing: "0.035em",
+                  color: "#0F1B2D",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                {t.differentials.title}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "0.9rem",
+                  lineHeight: 1.7,
+                  color: "#2B2F36",
+                  marginBottom: "2rem",
+                }}
+              >
+                {t.differentials.subtitle}
+              </p>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                {t.differentials.items.map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      gap: "1rem",
+                      alignItems: "flex-start",
+                      paddingBottom: "1.25rem",
+                      borderBottom: i < t.differentials.items.length - 1 ? "1px solid #D8D6D1" : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        color: "#C6A667",
+                        marginTop: "0.1rem",
+                      }}
+                    >
+                      {DIFFERENTIAL_ICONS[i]}
+                    </div>
+                    <div>
+                      <h4
+                        style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 600,
+                          fontSize: "0.875rem",
+                          letterSpacing: "0.04em",
+                          color: "#0F1B2D",
+                          marginBottom: "0.35rem",
+                        }}
+                      >
+                        {item.title}
+                      </h4>
+                      <p
+                        style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontWeight: 400,
+                          fontSize: "0.825rem",
+                          lineHeight: 1.65,
+                          color: "#2B2F36",
+                        }}
+                      >
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── GOVERNANÇA ── */}
+      <section id="governanca" style={{ backgroundColor: "#0F1B2D", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "4rem",
+              alignItems: "center",
+            }}
+          >
+            {/* Left: Content */}
+            <div>
+              <SectionTag label={t.governance.tag} />
+              <h2
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
+                  letterSpacing: "0.035em",
+                  color: "#F5F3EE",
+                  marginBottom: "0.75rem",
+                }}
+              >
+                {t.governance.title}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "0.9rem",
+                  lineHeight: 1.7,
+                  color: "rgba(245,243,238,0.6)",
+                  marginBottom: "2rem",
+                }}
+              >
+                {t.governance.subtitle}
+              </p>
+
+              <ul style={{ display: "flex", flexDirection: "column", gap: "0.875rem", marginBottom: "2rem" }}>
+                {t.governance.items.map((item, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.75rem",
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 400,
+                      fontSize: "0.875rem",
+                      lineHeight: 1.6,
+                      color: "rgba(245,243,238,0.72)",
+                    }}
+                  >
+                    <CheckSquare
+                      size={15}
+                      style={{ color: "#C6A667", flexShrink: 0, marginTop: "0.15rem" }}
+                    />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+
+              <a
+                href="#contato"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="nh-btn-gold"
+              >
+                {t.governance.cta} <ArrowRight size={14} />
+              </a>
+            </div>
+
+            {/* Right: Visual accent */}
+            <div
+              style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "360px",
+                  padding: "3rem",
+                  border: "1px solid rgba(198,166,103,0.2)",
+                  position: "relative",
+                }}
+              >
+                {/* Gold corner accent */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "3rem",
+                    height: "3px",
+                    backgroundColor: "#C6A667",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "3px",
+                    height: "3rem",
+                    backgroundColor: "#C6A667",
+                  }}
+                />
+                <div
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 300,
+                    fontSize: "0.8rem",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "rgba(245,243,238,0.4)",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  Sistema de Gestão Integrado
+                </div>
+                {["Engenharia", "Jurídico", "Finanças", "Suprimentos", "Comercial", "Pós-Ocupação"].map((area, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontWeight: 500,
+                      fontSize: "0.875rem",
+                      letterSpacing: "0.04em",
+                      color: i === 0 ? "#C6A667" : "rgba(245,243,238,0.65)",
+                      padding: "0.6rem 0",
+                      borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      transition: "color 0.15s ease",
+                    }}
+                  >
+                    {area}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SUSTENTABILIDADE ── */}
+      <section id="sustentabilidade" style={{ backgroundColor: "#F5F3EE", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div style={{ textAlign: "center", maxWidth: "600px", margin: "0 auto 3.5rem" }}>
+            <SectionTag label={t.sustainability.tag} />
+            <h2
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
+                letterSpacing: "0.035em",
+                color: "#0F1B2D",
+                marginBottom: "0.75rem",
+              }}
+            >
+              {t.sustainability.title}
             </h2>
-            <p className="text-base" style={{ color: "rgba(43, 47, 54, 0.7)" }}>
-              Alguns empreendimentos que refletem nosso padrão de entrega.
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "0.9375rem",
+                lineHeight: 1.7,
+                color: "#2B2F36",
+              }}
+            >
+              {t.sustainability.subtitle}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            {[
-              {
-                status: "Entregue",
-                statusColor: "#166534",
-                statusBg: "rgba(22, 101, 52, 0.15)",
-                image: PROJECT_1_IMAGE,
-                title: "Residencial Jardim das Acácias",
-                location: "São Gonçalo - Alcântara",
-                desc: "Empreendimento entregue com alto padrão de acabamento e localização privilegiada.",
-              },
-              {
-                status: "Em desenvolvimento",
-                statusColor: "#1e40af",
-                statusBg: "rgba(30, 64, 175, 0.15)",
-                image: PROJECT_2_IMAGE,
-                title: "Edifício Corporativo Atlântico",
-                location: "Niterói - Centro",
-                desc: "Edifício comercial moderno com infraestrutura completa para escritórios corporativos.",
-              },
-              {
-                status: "Em obras",
-                statusColor: "#92400e",
-                statusBg: "rgba(146, 64, 14, 0.15)",
-                image: PROJECT_3_IMAGE,
-                title: "Residencial Mirante do Vale",
-                location: "São Gonçalo - Centro",
-                desc: "Residencial de alto padrão com foco em eficiência de planta e acabamento refinado.",
-              },
-            ].map((project, i) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+              gap: "1.5rem",
+            }}
+          >
+            {t.sustainability.items.map((item, i) => (
               <div
                 key={i}
-                className="bg-white overflow-hidden rounded-sm"
                 style={{
-                  border: "1px solid rgba(232, 230, 225, 0.8)",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #E8E6E1",
+                  padding: "2rem",
+                  borderTop: "3px solid transparent",
+                  transition: "border-top-color 0.2s ease, box-shadow 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.borderTopColor = "#C6A667";
+                  el.style.boxShadow = "0 4px 20px rgba(15,27,45,0.07)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.borderTopColor = "transparent";
+                  el.style.boxShadow = "none";
                 }}
               >
-                <div className="relative overflow-hidden" style={{ height: "220px" }}>
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover transition-transform duration-500"
-                    style={{ transform: "scale(1)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                  />
-                  <div className="absolute top-3 left-3">
-                    <span
-                      className="text-xs font-semibold px-2.5 py-1 rounded-sm"
-                      style={{
-                        color: project.statusColor,
-                        backgroundColor: project.statusBg,
-                        backdropFilter: "blur(4px)",
-                      }}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
+                <div style={{ color: "#C6A667", marginBottom: "1rem" }}>
+                  {SUSTAINABILITY_ICONS[i]}
                 </div>
-                <div className="p-5">
-                  <h3
-                    className="font-semibold text-base mb-1"
-                    style={{ color: "#0f1b2d" }}
-                  >
-                    {project.title}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <MapPin size={12} style={{ color: "#c6a667" }} />
-                    <span className="text-xs" style={{ color: "rgba(43, 47, 54, 0.6)" }}>
-                      {project.location}
-                    </span>
-                  </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "rgba(43, 47, 54, 0.7)" }}>
-                    {project.desc}
-                  </p>
-                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                    letterSpacing: "0.05em",
+                    color: "#0F1B2D",
+                    marginBottom: "0.6rem",
+                  }}
+                >
+                  {item.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 400,
+                    fontSize: "0.825rem",
+                    lineHeight: 1.7,
+                    color: "#2B2F36",
+                  }}
+                >
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
+        </div>
+      </section>
 
-          <div className="flex justify-center">
-            <a
-              href="#projetos"
-              className="no-underline flex items-center gap-2 font-medium text-sm px-6 py-3"
+      {/* ── QUEM SOMOS ── */}
+      <section id="quem-somos" style={{ backgroundColor: "#E8E6E1", padding: "6rem 0" }}>
+        <div className="container mx-auto">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "4rem",
+              alignItems: "center",
+            }}
+          >
+            {/* Image */}
+            <div style={{ position: "relative" }}>
+              <img
+                src={ABOUT_IMAGE}
+                alt="Nova Habitar"
+                style={{ width: "100%", height: "460px", objectFit: "cover" }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "-1rem",
+                  right: "-1rem",
+                  width: "6rem",
+                  height: "6rem",
+                  backgroundColor: "#C6A667",
+                  opacity: 0.15,
+                  pointerEvents: "none",
+                }}
+              />
+            </div>
+
+            {/* Content */}
+            <div>
+              <SectionTag label={t.about.tag} />
+              <h2
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(1.4rem, 2.5vw, 2rem)",
+                  letterSpacing: "0.035em",
+                  color: "#0F1B2D",
+                  marginBottom: "1.25rem",
+                }}
+              >
+                {t.about.title}
+              </h2>
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "0.875rem",
+                  lineHeight: 1.75,
+                  color: "#2B2F36",
+                  marginBottom: "1rem",
+                }}
+              >
+                {t.about.body1}
+              </p>
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 400,
+                  fontSize: "0.875rem",
+                  lineHeight: 1.75,
+                  color: "#2B2F36",
+                  marginBottom: "2rem",
+                }}
+              >
+                {t.about.body2}
+              </p>
+
+              {/* Mission / Vision / Values */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gap: "0",
+                  border: "1px solid #D8D6D1",
+                  marginBottom: "2rem",
+                }}
+              >
+                {[
+                  { label: t.about.mission, text: t.about.missionText },
+                  { label: t.about.vision, text: t.about.visionText },
+                  { label: t.about.values, text: t.about.valuesText },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: "1.25rem",
+                      borderRight: i < 2 ? "1px solid #D8D6D1" : "none",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                        color: "#C6A667",
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                    <p
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "0.75rem",
+                        lineHeight: 1.6,
+                        color: "#2B2F36",
+                      }}
+                    >
+                      {item.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <a
+                href="#contato"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
+                }}
+                className="nh-btn-outline-dark"
+              >
+                {t.about.cta} <ArrowRight size={14} />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section
+        id="contato"
+        style={{
+          backgroundColor: "#0F1B2D",
+          padding: "6rem 0",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Subtle gold gradient accent — ≤5% of section */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: "30%",
+            height: "100%",
+            background: "linear-gradient(135deg, transparent 60%, rgba(198,166,103,0.04) 100%)",
+            pointerEvents: "none",
+          }}
+        />
+        {/* Gold top border line */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "3rem",
+            width: "4rem",
+            height: "3px",
+            backgroundColor: "#C6A667",
+          }}
+        />
+
+        <div className="container mx-auto" style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ maxWidth: "640px" }}>
+            <SectionTag label="Contato" />
+            <h2
               style={{
-                color: "#0f1b2d",
-                border: "1px solid #0f1b2d",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#0f1b2d";
-                e.currentTarget.style.color = "#ffffff";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#0f1b2d";
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
+                letterSpacing: "0.035em",
+                color: "#F5F3EE",
+                marginBottom: "1rem",
               }}
             >
-              Ver todos os projetos <ArrowRight size={14} />
+              {t.cta.title}
+            </h2>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "0.9375rem",
+                lineHeight: 1.7,
+                color: "rgba(245,243,238,0.6)",
+                marginBottom: "2.5rem",
+                maxWidth: "520px",
+              }}
+            >
+              {t.cta.subtitle}
+            </p>
+            <a href="mailto:contato@novahabitar.com" className="nh-btn-gold">
+              {t.cta.button} <ArrowRight size={14} />
             </a>
           </div>
         </div>
       </section>
 
-      {/* ===== STRUCTURE SECTION ===== */}
-      <section id="estrutura" style={{ backgroundColor: "#0f1b2d" }} className="py-20">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Text Content */}
-            <div>
-              <h2
-                className="font-display text-3xl md:text-4xl font-bold text-white mb-6 leading-snug"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
-              >
-                Nossa estrutura como parceira do investidor e do incorporador.
-              </h2>
-              <p className="text-base mb-8 leading-relaxed" style={{ color: "rgba(246, 244, 239, 0.75)" }}>
-                A Nova Habitar reúne experiência prática em incorporação, arquitetura e obra para conduzir empreendimentos com governança e previsibilidade. Atuamos com foco em conformidade, controle financeiro e padrão de acabamento, reduzindo assimetrias entre projeto, obra e entrega final.
-              </p>
-              <ul className="space-y-3 mb-10">
-                {[
-                  "Processos orientados por normas técnicas e código de obras.",
-                  "Gestão de cronograma e custos com visão de risco.",
-                  "Integração entre equipes técnicas e jurídicas.",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-start gap-3">
-                    <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0" style={{ color: "#c6a667" }} />
-                    <span className="text-sm" style={{ color: "rgba(246, 244, 239, 0.8)" }}>
-                      {item}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href="#estrutura"
-                className="no-underline flex items-center gap-2 font-semibold text-sm px-6 py-3 w-fit"
-                style={{
-                  backgroundColor: "#c6a667",
-                  color: "#0f1b2d",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#d4b87a")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#c6a667")}
-              >
-                Conheça nossa estrutura <ArrowRight size={14} />
-              </a>
-            </div>
-
-            {/* Image */}
-            <div className="relative">
-              <img
-                src={STRUCTURE_IMAGE}
-                alt="Equipe analisando projetos"
-                className="w-full object-cover rounded-sm"
-                style={{ height: "400px" }}
-              />
-              <div
-                className="absolute inset-0 rounded-sm"
-                style={{ border: "1px solid rgba(198, 166, 103, 0.2)" }}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== ABOUT SECTION ===== */}
-      <section id="quem-somos" style={{ backgroundColor: "#ffffff" }} className="py-20">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Image */}
-            <div className="relative order-2 lg:order-1">
-              <img
-                src={ABOUT_IMAGE}
-                alt="Equipe Nova Habitar"
-                className="w-full object-cover rounded-sm"
-                style={{ height: "400px" }}
-              />
-            </div>
-
-            {/* Text Content */}
-            <div className="order-1 lg:order-2">
-              <div className="flex items-center gap-2 mb-4">
-                <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: "rgba(22, 101, 52, 0.1)" }}
-                >
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#166534" }} />
-                </div>
-                <span className="text-sm font-medium" style={{ color: "#166534" }}>
-                  Sobre Nós
-                </span>
-              </div>
-              <h2
-                className="font-display text-3xl md:text-4xl font-bold mb-6 leading-snug"
-                style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0f1b2d" }}
-              >
-                Quem está por trás da Nova Habitar.
-              </h2>
-              <p className="text-base leading-relaxed mb-8" style={{ color: "rgba(43, 47, 54, 0.75)" }}>
-                Fundada em 2012, a Nova Habitar nasceu da união entre a prática de canteiro de obras e a visão estratégica de incorporação. A partir de São Gonçalo (RJ), desenvolvemos empreendimentos residenciais com foco em solidez, refino arquitetônico e padrão de entrega previsível.
-              </p>
-              <a
-                href="#quem-somos"
-                className="no-underline flex items-center gap-2 font-medium text-sm px-6 py-3 w-fit"
-                style={{
-                  color: "#0f1b2d",
-                  border: "1px solid #0f1b2d",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#0f1b2d";
-                  e.currentTarget.style.color = "#ffffff";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "#0f1b2d";
-                }}
-              >
-                Ver história completa <ArrowRight size={14} />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ===== CTA SECTION ===== */}
-      <section id="contato" style={{ backgroundColor: "#c6a667" }} className="py-20">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl text-center">
-          <h2
-            className="font-display text-3xl md:text-4xl font-bold mb-4"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif", color: "#0f1b2d" }}
-          >
-            Vamos falar sobre o seu próximo empreendimento?
-          </h2>
-          <p className="text-base mb-10" style={{ color: "rgba(15, 27, 45, 0.75)" }}>
-            Apresentamos cenários, riscos e possibilidades com base técnica e visão de mercado.
-          </p>
-          <a
-            href="mailto:contato@novahabitar.com"
-            className="no-underline inline-flex items-center gap-2 font-semibold text-sm px-8 py-4"
+      {/* ── FOOTER ── */}
+      <footer style={{ backgroundColor: "#0a1420", padding: "4rem 0 2rem" }}>
+        <div className="container mx-auto">
+          <div
             style={{
-              backgroundColor: "#0f1b2d",
-              color: "#ffffff",
-              transition: "all 0.2s ease",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: "3rem",
+              marginBottom: "3rem",
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#1a2d45")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#0f1b2d")}
           >
-            Agendar conversa técnica
-          </a>
-        </div>
-      </section>
-
-      {/* ===== FOOTER ===== */}
-      <footer style={{ backgroundColor: "#0f1b2d" }} className="py-14">
-        <div className="container mx-auto px-6 lg:px-8 max-w-7xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
             {/* Brand */}
             <div>
-              <div className="flex items-center gap-2.5 mb-4">
-                <div
-                  className="flex items-center justify-center w-8 h-8 border"
-                  style={{ borderColor: "#c6a667" }}
-                >
-                  <Building2 size={16} style={{ color: "#c6a667" }} />
-                </div>
-                <div>
-                  <div className="font-semibold text-sm tracking-wide text-white leading-tight">
-                    Nova Habitar
-                  </div>
-                  <div className="text-xs tracking-widest" style={{ color: "#c6a667", fontSize: "0.6rem" }}>
-                    CONFIABILIDADE & REFINO
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm leading-relaxed" style={{ color: "rgba(246, 244, 239, 0.6)" }}>
-                Incorporadora de alto padrão integrando planejamento, arquitetura, incorporação e execução desde 2012.
+              <img
+                src={LOGO_DARK}
+                alt="NOVA HABITAR"
+                style={{ height: "40px", width: "auto", objectFit: "contain", marginBottom: "1.25rem" }}
+              />
+              <p
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 300,
+                  fontSize: "0.825rem",
+                  lineHeight: 1.7,
+                  color: "rgba(245,243,238,0.45)",
+                  maxWidth: "280px",
+                }}
+              >
+                {t.footer.description}
               </p>
+              <div
+                style={{
+                  marginTop: "1.25rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "0.6rem",
+                  letterSpacing: "0.16em",
+                  textTransform: "uppercase",
+                  color: "#C6A667",
+                  opacity: 0.7,
+                }}
+              >
+                {t.footer.tagline}
+              </div>
             </div>
 
             {/* Navigation */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
-                Navegação
+              <h4
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "rgba(245,243,238,0.4)",
+                  marginBottom: "1.25rem",
+                }}
+              >
+                {t.footer.nav}
               </h4>
-              <ul className="space-y-2.5">
+              <ul style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 {[
-                  { label: "Projetos", id: "projetos" },
-                  { label: "Estrutura", id: "estrutura" },
-                  { label: "Quem Somos", id: "quem-somos" },
-                  { label: "Contato", id: "contato" },
+                  { label: t.nav.projects, hash: "projetos" },
+                  { label: t.nav.actuation, hash: "atuacao" },
+                  { label: t.nav.differentials, hash: "diferenciais" },
+                  { label: t.nav.governance, hash: "governanca" },
+                  { label: t.nav.sustainability, hash: "sustentabilidade" },
+                  { label: t.nav.about, hash: "quem-somos" },
                 ].map((item) => (
-                  <li key={item.id}>
+                  <li key={item.hash}>
                     <a
-                      href={`#${item.id}`}
-                      onClick={(e) => { e.preventDefault(); scrollToSection(item.id); }}
-                      className="text-sm no-underline transition-colors"
-                      style={{ color: "rgba(246, 244, 239, 0.6)" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#c6a667")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(246, 244, 239, 0.6)")}
+                      href={`#${item.hash}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(item.hash)?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "0.825rem",
+                        color: "rgba(245,243,238,0.5)",
+                        textDecoration: "none",
+                        transition: "color 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.5)")}
                     >
                       {item.label}
                     </a>
@@ -638,41 +1020,109 @@ export default function Home() {
 
             {/* Contact */}
             <div>
-              <h4 className="text-sm font-semibold text-white mb-4 tracking-wide">
-                Contato
+              <h4
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 600,
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: "rgba(245,243,238,0.4)",
+                  marginBottom: "1.25rem",
+                }}
+              >
+                {t.footer.contact}
               </h4>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2.5">
-                  <MapPin size={14} style={{ color: "#c6a667" }} />
-                  <span className="text-sm" style={{ color: "rgba(246, 244, 239, 0.6)" }}>
-                    São Gonçalo, Rio de Janeiro
-                  </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.875rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "0.6rem",
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: "0.825rem",
+                    fontWeight: 400,
+                    color: "rgba(245,243,238,0.5)",
+                  }}
+                >
+                  <MapPin size={13} style={{ color: "#C6A667", flexShrink: 0, marginTop: "0.1rem" }} />
+                  São Gonçalo, Rio de Janeiro
                 </div>
-                <div className="flex items-center gap-2.5">
-                  <Mail size={14} style={{ color: "#c6a667" }} />
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.6rem",
+                  }}
+                >
+                  <Mail size={13} style={{ color: "#C6A667", flexShrink: 0 }} />
                   <a
                     href="mailto:contato@novahabitar.com"
-                    className="text-sm no-underline"
-                    style={{ color: "rgba(246, 244, 239, 0.6)" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#c6a667")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(246, 244, 239, 0.6)")}
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: "0.825rem",
+                      fontWeight: 400,
+                      color: "rgba(245,243,238,0.5)",
+                      textDecoration: "none",
+                      transition: "color 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.5)")}
                   >
                     contato@novahabitar.com
                   </a>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.6rem",
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: "0.825rem",
+                    fontWeight: 400,
+                    color: "rgba(245,243,238,0.5)",
+                  }}
+                >
+                  <Calendar size={13} style={{ color: "#C6A667", flexShrink: 0 }} />
+                  CNPJ 16.692.513/0001-40
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Copyright */}
+          {/* Divider + copyright */}
           <div
-            className="pt-8 text-center text-sm"
             style={{
-              borderTop: "1px solid rgba(246, 244, 239, 0.1)",
-              color: "rgba(246, 244, 239, 0.4)",
+              borderTop: "1px solid rgba(255,255,255,0.06)",
+              paddingTop: "1.5rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: "0.75rem",
             }}
           >
-            © 2026 Nova Habitar. Todos os direitos reservados.
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 400,
+                fontSize: "0.75rem",
+                color: "rgba(245,243,238,0.3)",
+              }}
+            >
+              © 2026 Nova Habitar. {t.footer.rights}
+            </p>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 300,
+                fontSize: "0.7rem",
+                letterSpacing: "0.06em",
+                color: "rgba(245,243,238,0.2)",
+              }}
+            >
+              Incorporadora e Construtora Nova Habitar Ltda.
+            </p>
           </div>
         </div>
       </footer>

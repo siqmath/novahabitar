@@ -1,3 +1,10 @@
+/**
+ * Nova Habitar — Global Styles
+ * Design Principles: Simplicidade, Memorabilidade, Versatilidade, Adequação, Consistência, Verdade Estética
+ * Palette: Navy #0F1B2D | Gold #C6A667 (≤5%) | Graphite #2B2F36 | Off-White #F5F3EE
+ * Typography: Montserrat (Bold/Medium titles, Regular/Light body) — letter-spacing positive on titles
+ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -41,62 +48,90 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Nova Habitar Custom Colors */
-  --color-navy: #0f1b2d;
-  --color-navy-light: #1a2d45;
-  --color-gold: #c6a667;
-  --color-gold-light: #d4b87a;
-  --color-cream: #f5f3ee;
-  --color-cream-dark: #e8e6e1;
-  --color-green-accent: #166534;
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Inter', Arial, Helvetica, sans-serif;
+  /* ── Nova Habitar Brand Tokens ── */
+  --nh-navy:      #0F1B2D;
+  --nh-navy-mid:  #1a2d45;
+  --nh-gold:      #C6A667;
+  --nh-gold-light:#d4b87a;
+  --nh-graphite:  #2B2F36;
+  --nh-offwhite:  #F5F3EE;
+  --nh-offwhite-d:#E8E6E1;
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.97 0.005 65);
-  --foreground: oklch(0.15 0.015 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0.015 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0.015 240);
-  --primary: oklch(0.55 0.08 65);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.005 65);
-  --secondary-foreground: oklch(0.3 0.015 65);
-  --muted: oklch(0.95 0.005 65);
-  --muted-foreground: oklch(0.55 0.016 65);
-  --accent: oklch(0.95 0.005 65);
-  --accent-foreground: oklch(0.15 0.005 65);
+  --radius: 0px; /* Sharp corners — precision, no softness */
+  --background: #F5F3EE;
+  --foreground: #0F1B2D;
+  --card: #ffffff;
+  --card-foreground: #0F1B2D;
+  --popover: #ffffff;
+  --popover-foreground: #0F1B2D;
+  --primary: #0F1B2D;
+  --primary-foreground: #F5F3EE;
+  --secondary: #E8E6E1;
+  --secondary-foreground: #2B2F36;
+  --muted: #E8E6E1;
+  --muted-foreground: #2B2F36;
+  --accent: #C6A667;
+  --accent-foreground: #0F1B2D;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.9 0.004 65);
-  --input: oklch(0.9 0.004 65);
-  --ring: oklch(0.55 0.08 65);
-  --chart-1: oklch(0.55 0.08 65);
-  --chart-2: oklch(0.45 0.07 65);
-  --chart-3: oklch(0.35 0.06 65);
-  --chart-4: oklch(0.65 0.09 65);
-  --chart-5: oklch(0.75 0.1 65);
-  --sidebar: oklch(0.97 0.005 65);
-  --sidebar-foreground: oklch(0.15 0.015 240);
-  --sidebar-primary: oklch(0.55 0.08 65);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.005 65);
-  --sidebar-accent-foreground: oklch(0.15 0.005 65);
-  --sidebar-border: oklch(0.9 0.004 65);
-  --sidebar-ring: oklch(0.55 0.08 65);
+  --border: #D8D6D1;
+  --input: #D8D6D1;
+  --ring: #C6A667;
+  --chart-1: #C6A667;
+  --chart-2: #0F1B2D;
+  --chart-3: #2B2F36;
+  --chart-4: #d4b87a;
+  --chart-5: #1a2d45;
+  --sidebar: #0F1B2D;
+  --sidebar-foreground: #F5F3EE;
+  --sidebar-primary: #C6A667;
+  --sidebar-primary-foreground: #0F1B2D;
+  --sidebar-accent: rgba(198, 166, 103, 0.1);
+  --sidebar-accent-foreground: #F5F3EE;
+  --sidebar-border: rgba(255,255,255,0.08);
+  --sidebar-ring: #C6A667;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
   }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', Arial, Helvetica, sans-serif;
+    background-color: #F5F3EE;
+    color: #0F1B2D;
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Typography system — Montserrat with positive letter-spacing on titles */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
+    color: #0F1B2D;
+  }
+
+  h1 { font-size: clamp(2rem, 5vw, 3.5rem); letter-spacing: 0.04em; }
+  h2 { font-size: clamp(1.5rem, 3.5vw, 2.5rem); letter-spacing: 0.035em; }
+  h3 { font-size: clamp(1.1rem, 2vw, 1.4rem); letter-spacing: 0.03em; font-weight: 600; }
+
+  p {
+    line-height: 1.7;
+    color: #2B2F36;
+  }
+
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -106,7 +141,7 @@
   select:not(:disabled),
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled) {
-    @apply cursor-pointer;
+    cursor: pointer;
   }
 }
 
@@ -115,8 +150,8 @@
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
   }
 
   .flex {
@@ -126,118 +161,172 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
+      padding-left: 2rem;
+      padding-right: 2rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem;
-      padding-right: 2rem;
-      max-width: 1280px;
+      padding-left: 3rem;
+      padding-right: 3rem;
+      max-width: 1320px;
     }
   }
 
-  /* Nova Habitar Custom Styles */
-  .font-display {
-    font-family: 'Playfair Display', Georgia, serif;
-  }
-
-  .font-body {
-    font-family: 'Inter', Arial, Helvetica, sans-serif;
-  }
-
-  .text-gold {
-    color: #c6a667;
-  }
-
-  .bg-navy {
-    background-color: #0f1b2d;
-  }
-
-  .bg-gold {
-    background-color: #c6a667;
-  }
-
-  .bg-cream {
-    background-color: #f5f3ee;
-  }
-
-  .border-gold {
-    border-color: #c6a667;
-  }
-
-  .nova-btn-gold {
-    background-color: #c6a667;
-    color: #0f1b2d;
+  /* ── Brand Buttons ── */
+  .nh-btn-gold {
+    background-color: #C6A667;
+    color: #0F1B2D;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    padding: 0.75rem 1.75rem;
-    font-size: 0.875rem;
-    letter-spacing: 0.025em;
-    transition: all 0.2s ease;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.875rem 2rem;
     border: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    text-decoration: none;
   }
-
-  .nova-btn-gold:hover {
+  .nh-btn-gold:hover {
     background-color: #d4b87a;
+    transform: translateY(-1px);
   }
 
-  .nova-btn-outline {
+  .nh-btn-outline-light {
     background-color: transparent;
-    color: #ffffff;
+    color: #F5F3EE;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 500;
-    padding: 0.75rem 1.75rem;
-    font-size: 0.875rem;
-    letter-spacing: 0.025em;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(255,255,255,0.5);
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.875rem 2rem;
+    border: 1px solid rgba(245, 243, 238, 0.45);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    text-decoration: none;
+  }
+  .nh-btn-outline-light:hover {
+    border-color: #F5F3EE;
+    background-color: rgba(245, 243, 238, 0.06);
   }
 
-  .nova-btn-outline:hover {
-    border-color: #ffffff;
-    background-color: rgba(255,255,255,0.05);
-  }
-
-  .nova-btn-dark {
-    background-color: #0f1b2d;
-    color: #ffffff;
+  .nh-btn-navy {
+    background-color: #0F1B2D;
+    color: #F5F3EE;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 600;
-    padding: 0.75rem 1.75rem;
-    font-size: 0.875rem;
-    letter-spacing: 0.025em;
-    transition: all 0.2s ease;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.875rem 2rem;
     border: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+    text-decoration: none;
   }
-
-  .nova-btn-dark:hover {
+  .nh-btn-navy:hover {
     background-color: #1a2d45;
+    transform: translateY(-1px);
   }
 
-  .nova-btn-outline-dark {
+  .nh-btn-outline-dark {
     background-color: transparent;
-    color: #0f1b2d;
+    color: #0F1B2D;
+    font-family: 'Montserrat', sans-serif;
     font-weight: 500;
-    padding: 0.75rem 1.75rem;
-    font-size: 0.875rem;
-    letter-spacing: 0.025em;
-    transition: all 0.2s ease;
-    border: 1px solid #0f1b2d;
+    font-size: 0.8125rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.875rem 2rem;
+    border: 1px solid rgba(15, 27, 45, 0.4);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    transition: all 0.2s ease;
+    text-decoration: none;
+  }
+  .nh-btn-outline-dark:hover {
+    background-color: #0F1B2D;
+    color: #F5F3EE;
+    border-color: #0F1B2D;
   }
 
-  .nova-btn-outline-dark:hover {
-    background-color: rgba(15, 27, 45, 0.05);
+  /* ── Section Tag ── */
+  .nh-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #C6A667;
+    margin-bottom: 1rem;
+  }
+  .nh-tag::before {
+    content: '';
+    display: block;
+    width: 1.5rem;
+    height: 1px;
+    background-color: #C6A667;
+  }
+
+  /* ── Gold accent line ── */
+  .nh-gold-line {
+    display: block;
+    width: 2.5rem;
+    height: 2px;
+    background-color: #C6A667;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Sidebar nav ── */
+  .nh-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 72px;
+    background-color: #0F1B2D;
+    border-right: 1px solid rgba(198, 166, 103, 0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 50;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+  }
+  .nh-sidebar.expanded {
+    width: 260px;
+  }
+
+  /* ── Main content offset ── */
+  .nh-main {
+    margin-left: 72px;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  @media (max-width: 768px) {
+    .nh-sidebar {
+      width: 0;
+      border-right: none;
+    }
+    .nh-sidebar.mobile-open {
+      width: 260px;
+      border-right: 1px solid rgba(198, 166, 103, 0.12);
+    }
+    .nh-main {
+      margin-left: 0;
+    }
   }
 }
