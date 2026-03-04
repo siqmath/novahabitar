@@ -1,7 +1,12 @@
 /**
  * Nova Habitar — App Entry
- * Routes: /pt/* and /en/* for language switching
- * Sidebar is persistent on all pages
+ * Routes:
+ *   /           → redirect to /pt
+ *   /pt         → Home (PT)
+ *   /en         → Home (EN)
+ *   /pt/projetos → Projects page (PT)
+ *   /en/projetos → Projects page (EN)
+ *   /admin       → Admin panel (no sidebar)
  */
 
 import { Toaster } from "@/components/ui/sonner";
@@ -13,6 +18,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { LangProvider } from "./contexts/LangContext";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
+import Projects from "./pages/Projects";
+import Admin from "./pages/Admin";
 import { useEffect } from "react";
 
 // Redirect root to /pt
@@ -28,10 +35,13 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={RootRedirect} />
+      {/* Language-prefixed routes */}
       <Route path="/pt" component={Home} />
-      <Route path="/pt/:rest*" component={Home} />
+      <Route path="/pt/projetos" component={Projects} />
       <Route path="/en" component={Home} />
-      <Route path="/en/:rest*" component={Home} />
+      <Route path="/en/projetos" component={Projects} />
+      {/* Admin — no sidebar */}
+      <Route path="/admin" component={Admin} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -39,6 +49,13 @@ function Router() {
 }
 
 function AppLayout() {
+  const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
+
+  if (isAdmin) {
+    return <Router />;
+  }
+
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <Sidebar />

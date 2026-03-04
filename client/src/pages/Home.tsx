@@ -9,12 +9,11 @@
 
 import { useLang } from "@/contexts/LangContext";
 import AnimatedHero from "@/components/AnimatedHero";
+import ProjectCarousel from "@/components/ProjectCarousel";
+import { FeatureSteps } from "@/components/FeatureSteps";
+import { NHTimeline } from "@/components/NHTimeline";
+import { useLocation } from "wouter";
 import {
-  ClipboardList,
-  Ruler,
-  Briefcase,
-  HardHat,
-  CheckCircle,
   ArrowRight,
   MapPin,
   Mail,
@@ -30,23 +29,21 @@ import {
 } from "lucide-react";
 
 // Image constants
-const PROJECT_1 = "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png";
-const PROJECT_2 = "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png";
-const PROJECT_3 = "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png";
 const ABOUT_IMAGE = "https://cdn.abacus.ai/images/9ba8e268-af7b-49c3-901e-5ff1797d13fb.png";
 const STRUCTURE_IMAGE = "https://cdn.abacus.ai/images/da52a73e-44a8-49f3-aa6d-63b77ac7812f.png";
-const LOGO_LIGHT =
-  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/LkQQIgSogkaYgkRe.png?Expires=1804165690&Signature=DzaUbYoKfkMx-J-tjtEWrQXmAAmR41-ixf3NrBNWjC7eEoBzBthg01tYX6k~RNDqnUGDog33khYB718xnveXcZ-Qwm87Eka2t009RqsxpLkqSG4BFt4UCSnNcpCyHLq37VwjctQCyYakfBuIBley~WXjbAe7kp3FOE3d53MYDSTNgLXAOsLg2D6-ePeht0JK55SBRad-Zdb8U5-Yet1kZRIIaG0m-RXgBix2TEGWUFaS66CXlJXs9SIXWGMJehQ9OZ5MosF5zzBnkcauQaGfix~lDgcNaE4ghCKVr9DiBdFCKgccdzhNkTXFGl9exZU25hfLYL~924t5O3H-jzvvWg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 const LOGO_DARK =
   "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/CdFMmFddwYvgYETL.png?Expires=1804165690&Signature=cV49yLhvX-VzQthXEiyqjxknJOdktJRww9dPuGaPkTatBAoEsnT6oJ9se9dg9qZy~Jxt-cVENaLE9QSIdxo1qlLOxDLFnLH~zySFtoQpBMJOK~gLJDEPQ~jVYo~D2JA42wjFDjYIaXGnovRgXhWcqeq014kb1T-gQfkvF85ojHtjKO96-Hui9E5eofxvpD8PBlFl2aR-1RNIAxWMjPom7eut4Du3uPpE9m2P0ONoW8PGCSU8btcLm39Nm9b49Q1eNnECibg-DODDnJEFHzFCkxMlLCvvTYwXeUyjWTEgbYFCIX6cUXCYrFcLNp7g43H-rSPfNw1E0Vr6Yxxa~wveIw__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
-const ACTUATION_ICONS = [
-  <ClipboardList size={22} />,
-  <Ruler size={22} />,
-  <Briefcase size={22} />,
-  <HardHat size={22} />,
-  <CheckCircle size={22} />,
+// Actuation feature images
+const ACTUATION_IMAGES = [
+  "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80",
+  "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+  "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+  "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80",
 ];
+
+
 
 const DIFFERENTIAL_ICONS = [
   <ShieldCheck size={22} />,
@@ -62,8 +59,6 @@ const SUSTAINABILITY_ICONS = [
   <TrendingUp size={22} />,
 ];
 
-const PROJECT_IMAGES = [PROJECT_1, PROJECT_2, PROJECT_3];
-
 function SectionTag({ label }: { label: string }) {
   return (
     <div className="nh-tag">{label}</div>
@@ -71,22 +66,10 @@ function SectionTag({ label }: { label: string }) {
 }
 
 export default function Home() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const [, navigate] = useLocation();
 
-  const statusColor = (status: string) => {
-    if (status === "delivered") return { bg: "rgba(198,166,103,0.12)", color: "#C6A667" };
-    if (status === "underConstruction") return { bg: "rgba(15,27,45,0.08)", color: "#2B2F36" };
-    return { bg: "rgba(15,27,45,0.06)", color: "#2B2F36" };
-  };
 
-  const statusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      delivered: t.projects.statusLabels.delivered,
-      inDevelopment: t.projects.statusLabels.inDevelopment,
-      underConstruction: t.projects.statusLabels.underConstruction,
-    };
-    return map[status] ?? status;
-  };
 
   return (
     <div style={{ backgroundColor: "#F5F3EE" }}>
@@ -94,18 +77,18 @@ export default function Home() {
       <AnimatedHero />
 
       {/* ── ATUAÇÃO ── */}
-      <section id="atuacao" style={{ backgroundColor: "#0F1B2D", padding: "6rem 0" }}>
-        <div className="container mx-auto">
-          <div style={{ maxWidth: "640px", marginBottom: "3.5rem" }}>
+      <section id="atuacao" style={{ backgroundColor: "#F5F3EE", padding: "0" }}>
+        <div style={{ backgroundColor: "#F5F3EE", paddingTop: "4rem", paddingBottom: "0" }}>
+          <div className="container mx-auto">
             <SectionTag label={t.actuation.tag} />
             <h2
               style={{
                 fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
+                fontWeight: 800,
                 fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
                 letterSpacing: "0.035em",
-                color: "#F5F3EE",
-                marginBottom: "1rem",
+                color: "#0F1B2D",
+                marginBottom: "0.5rem",
               }}
             >
               {t.actuation.title}
@@ -116,79 +99,27 @@ export default function Home() {
                 fontWeight: 400,
                 fontSize: "0.9375rem",
                 lineHeight: 1.7,
-                color: "rgba(245,243,238,0.6)",
+                color: "#2B2F36",
+                maxWidth: "560px",
               }}
             >
               {t.actuation.subtitle}
             </p>
           </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "1px",
-              backgroundColor: "rgba(198,166,103,0.1)",
-            }}
-          >
-            {t.actuation.items.map((item, i) => (
-              <div
-                key={i}
-                style={{
-                  backgroundColor: "#0F1B2D",
-                  padding: "2rem 1.75rem",
-                  borderTop: "2px solid transparent",
-                  transition: "border-color 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderTopColor = "#C6A667";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.borderTopColor = "transparent";
-                }}
-              >
-                <div
-                  style={{
-                    color: "#C6A667",
-                    marginBottom: "1rem",
-                    opacity: 0.85,
-                  }}
-                >
-                  {ACTUATION_ICONS[i]}
-                </div>
-                <h3
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 600,
-                    fontSize: "0.9rem",
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    color: "#F5F3EE",
-                    marginBottom: "0.75rem",
-                  }}
-                >
-                  {item.title}
-                </h3>
-                <p
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 300,
-                    fontSize: "0.85rem",
-                    lineHeight: 1.7,
-                    color: "rgba(245,243,238,0.55)",
-                  }}
-                >
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
+        <FeatureSteps
+          features={t.actuation.items.map((item, i) => ({
+            step: String(i + 1).padStart(2, "0"),
+            title: item.title,
+            content: item.desc,
+            image: ACTUATION_IMAGES[i] || ACTUATION_IMAGES[0],
+          }))}
+        />
       </section>
 
       {/* ── PROJETOS ── */}
-      <section id="projetos" style={{ backgroundColor: "#F5F3EE", padding: "6rem 0" }}>
-        <div className="container mx-auto">
+      <section id="projetos" style={{ backgroundColor: "#0F1B2D", padding: "6rem 0 0" }}>
+        <div className="container mx-auto" style={{ paddingBottom: "3rem" }}>
           <div
             style={{
               display: "flex",
@@ -196,7 +127,7 @@ export default function Home() {
               alignItems: "flex-end",
               flexWrap: "wrap",
               gap: "1.5rem",
-              marginBottom: "3rem",
+              marginBottom: "2.5rem",
             }}
           >
             <div>
@@ -204,10 +135,10 @@ export default function Home() {
               <h2
                 style={{
                   fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
                   letterSpacing: "0.035em",
-                  color: "#0F1B2D",
+                  color: "#F5F3EE",
                   marginBottom: "0.75rem",
                 }}
               >
@@ -219,149 +150,24 @@ export default function Home() {
                   fontWeight: 400,
                   fontSize: "0.9375rem",
                   lineHeight: 1.7,
-                  color: "#2B2F36",
+                  color: "rgba(245,243,238,0.55)",
                   maxWidth: "480px",
                 }}
               >
                 {t.projects.subtitle}
               </p>
             </div>
-            <a
-              href="#projetos"
-              className="nh-btn-outline-dark"
+            <button
+              onClick={() => navigate(`/${lang}/projetos`)}
+              className="nh-btn-outline-light"
               style={{ flexShrink: 0 }}
             >
               {t.projects.viewAll} <ArrowRight size={14} />
-            </a>
-          </div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {t.projects.items.map((project, i) => {
-              const sc = statusColor(project.status);
-              return (
-                <div
-                  key={i}
-                  style={{
-                    backgroundColor: "#ffffff",
-                    overflow: "hidden",
-                    border: "1px solid #E8E6E1",
-                    transition: "box-shadow 0.2s ease, transform 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.boxShadow = "0 8px 32px rgba(15,27,45,0.1)";
-                    el.style.transform = "translateY(-3px)";
-                  }}
-                  onMouseLeave={(e) => {
-                    const el = e.currentTarget as HTMLElement;
-                    el.style.boxShadow = "none";
-                    el.style.transform = "translateY(0)";
-                  }}
-                >
-                  {/* Image */}
-                  <div style={{ position: "relative", height: "220px", overflow: "hidden" }}>
-                    <img
-                      src={PROJECT_IMAGES[i]}
-                      alt={project.title}
-                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    />
-                    {/* Status badge */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "1rem",
-                        left: "1rem",
-                        backgroundColor: sc.bg,
-                        color: sc.color,
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 600,
-                        fontSize: "0.65rem",
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        padding: "0.3rem 0.75rem",
-                        backdropFilter: "blur(4px)",
-                        border: `1px solid ${sc.color}40`,
-                      }}
-                    >
-                      {statusLabel(project.status)}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ padding: "1.5rem" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.4rem",
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.75rem",
-                        fontWeight: 500,
-                        color: "#2B2F36",
-                        opacity: 0.6,
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      <MapPin size={11} />
-                      {project.location}
-                    </div>
-                    <h3
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "1rem",
-                        letterSpacing: "0.03em",
-                        color: "#0F1B2D",
-                        marginBottom: "0.75rem",
-                      }}
-                    >
-                      {project.title}
-                    </h3>
-                    <p
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 400,
-                        fontSize: "0.8375rem",
-                        lineHeight: 1.65,
-                        color: "#2B2F36",
-                        marginBottom: "1rem",
-                      }}
-                    >
-                      {project.desc}
-                    </p>
-                    {/* Specs */}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                      {project.specs.map((spec, si) => (
-                        <span
-                          key={si}
-                          style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontSize: "0.65rem",
-                            fontWeight: 600,
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: "#0F1B2D",
-                            backgroundColor: "#F5F3EE",
-                            border: "1px solid #D8D6D1",
-                            padding: "0.25rem 0.6rem",
-                          }}
-                        >
-                          {spec}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            </button>
           </div>
         </div>
+        {/* Full-width carousel */}
+        <ProjectCarousel />
       </section>
 
       {/* ── DIFERENCIAIS ── */}
@@ -728,25 +534,9 @@ export default function Home() {
               alignItems: "center",
             }}
           >
-            {/* Image */}
-            <div style={{ position: "relative" }}>
-              <img
-                src={ABOUT_IMAGE}
-                alt="Nova Habitar"
-                style={{ width: "100%", height: "460px", objectFit: "cover" }}
-              />
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: "-1rem",
-                  right: "-1rem",
-                  width: "6rem",
-                  height: "6rem",
-                  backgroundColor: "#C6A667",
-                  opacity: 0.15,
-                  pointerEvents: "none",
-                }}
-              />
+            {/* Timeline replaces static image */}
+            <div style={{ position: "relative", overflow: "hidden" }}>
+              <NHTimeline />
             </div>
 
             {/* Content */}

@@ -1,6 +1,6 @@
 /**
  * Nova Habitar — Sidebar Navigation
- * Left expandable sidebar with logo, nav links and language toggle
+ * Left expandable sidebar with logo (200% larger), nav links, language toggle
  * Design: Navy #0F1B2D, Gold #C6A667 accents, Montserrat typography
  */
 
@@ -19,10 +19,14 @@ import {
   ChevronRight,
   Menu,
   X,
+  Settings,
 } from "lucide-react";
 
 const LOGO_DARK =
   "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/CdFMmFddwYvgYETL.png?Expires=1804165690&Signature=cV49yLhvX-VzQthXEiyqjxknJOdktJRww9dPuGaPkTatBAoEsnT6oJ9se9dg9qZy~Jxt-cVENaLE9QSIdxo1qlLOxDLFnLH~zySFtoQpBMJOK~gLJDEPQ~jVYo~D2JA42wjFDjYIaXGnovRgXhWcqeq014kb1T-gQfkvF85ojHtjKO96-Hui9E5eofxvpD8PBlFl2aR-1RNIAxWMjPom7eut4Du3uPpE9m2P0ONoW8PGCSU8btcLm39Nm9b49Q1eNnECibg-DODDnJEFHzFCkxMlLCvvTYwXeUyjWTEgbYFCIX6cUXCYrFcLNp7g43H-rSPfNw1E0Vr6Yxxa~wveIw__&Key-Pair-Id=K2HSFNDJXOU9YS";
+
+// Monogram-only logo (NH symbol without text) — using same logo cropped via object-position
+const LOGO_MONO = LOGO_DARK;
 
 export default function Sidebar() {
   const [expanded, setExpanded] = useState(false);
@@ -36,20 +40,25 @@ export default function Sidebar() {
   }, [location]);
 
   const navItems = [
-    { icon: <Home size={18} />, label: t.nav.home, hash: "inicio" },
-    { icon: <FolderOpen size={18} />, label: t.nav.projects, hash: "projetos" },
-    { icon: <Layers size={18} />, label: t.nav.actuation, hash: "atuacao" },
-    { icon: <Star size={18} />, label: t.nav.differentials, hash: "diferenciais" },
-    { icon: <ShieldCheck size={18} />, label: t.nav.governance, hash: "governanca" },
-    { icon: <Leaf size={18} />, label: t.nav.sustainability, hash: "sustentabilidade" },
-    { icon: <Users size={18} />, label: t.nav.about, hash: "quem-somos" },
-    { icon: <Mail size={18} />, label: t.nav.contact, hash: "contato" },
+    { icon: <Home size={18} />, label: t.nav.home, action: () => { navigate(`/${lang}`); setTimeout(() => document.getElementById("inicio")?.scrollIntoView({ behavior: "smooth" }), 100); } },
+    { icon: <FolderOpen size={18} />, label: t.nav.projects, action: () => navigate(`/${lang}/projetos`) },
+    { icon: <Layers size={18} />, label: t.nav.actuation, action: () => scrollTo("atuacao") },
+    { icon: <Star size={18} />, label: t.nav.differentials, action: () => scrollTo("diferenciais") },
+    { icon: <ShieldCheck size={18} />, label: t.nav.governance, action: () => scrollTo("governanca") },
+    { icon: <Leaf size={18} />, label: t.nav.sustainability, action: () => scrollTo("sustentabilidade") },
+    { icon: <Users size={18} />, label: t.nav.about, action: () => scrollTo("quem-somos") },
+    { icon: <Mail size={18} />, label: t.nav.contact, action: () => scrollTo("contato") },
   ];
 
   const scrollTo = (hash: string) => {
-    const el = document.getElementById(hash);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    // If not on home page, navigate first then scroll
+    if (!location.endsWith(`/${lang}`) && location !== `/${lang}`) {
+      navigate(`/${lang}`);
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    } else {
+      document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" });
     }
     setMobileOpen(false);
   };
@@ -83,36 +92,48 @@ export default function Sidebar() {
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
       >
-        {/* Logo area */}
+        {/* Logo area — 200% larger */}
         <div
-          className="flex items-center w-full px-4 py-5"
+          className="flex items-center w-full px-3 py-4"
           style={{
             borderBottom: "1px solid rgba(198,166,103,0.12)",
-            minHeight: "72px",
+            minHeight: "88px",
             overflow: "hidden",
+            cursor: "pointer",
           }}
+          onClick={() => navigate(`/${lang}`)}
         >
           {isOpen ? (
             <img
               src={LOGO_DARK}
               alt="NOVA HABITAR"
-              style={{ height: "32px", width: "auto", objectFit: "contain" }}
+              style={{
+                height: "64px",   /* 200% of original 32px */
+                width: "auto",
+                objectFit: "contain",
+                transition: "opacity 0.2s ease",
+              }}
             />
           ) : (
             <div
               style={{
-                width: "32px",
-                height: "32px",
+                width: "40px",
+                height: "64px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                overflow: "hidden",
               }}
             >
-              {/* Monogram placeholder when collapsed */}
               <img
-                src={LOGO_DARK}
+                src={LOGO_MONO}
                 alt="NH"
-                style={{ height: "28px", width: "28px", objectFit: "contain", objectPosition: "left" }}
+                style={{
+                  height: "56px",
+                  width: "56px",
+                  objectFit: "contain",
+                  objectPosition: "left center",
+                }}
               />
             </div>
           )}
@@ -120,49 +141,58 @@ export default function Sidebar() {
 
         {/* Nav items */}
         <nav className="flex flex-col w-full flex-1 py-4 gap-0.5 overflow-hidden">
-          {navItems.map((item) => (
-            <button
-              key={item.hash}
-              onClick={() => scrollTo(item.hash)}
-              className="flex items-center w-full px-4 py-3 transition-all duration-150 group"
-              style={{
-                color: "rgba(245,243,238,0.65)",
-                background: "transparent",
-                border: "none",
-                textAlign: "left",
-                whiteSpace: "nowrap",
-                gap: "1rem",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#C6A667";
-                e.currentTarget.style.backgroundColor = "rgba(198,166,103,0.07)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = "rgba(245,243,238,0.65)";
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              <span style={{ flexShrink: 0, width: "18px" }}>{item.icon}</span>
-              {isOpen && (
-                <span
-                  style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.8rem",
-                    fontWeight: 500,
-                    letterSpacing: "0.06em",
-                    textTransform: "uppercase",
-                    opacity: isOpen ? 1 : 0,
-                    transition: "opacity 0.2s ease",
-                  }}
-                >
-                  {item.label}
-                </span>
-              )}
-            </button>
-          ))}
+          {navItems.map((item, idx) => {
+            const isActive =
+              idx === 1
+                ? location.includes("/projetos")
+                : !location.includes("/projetos") && location.startsWith(`/${lang}`);
+
+            return (
+              <button
+                key={idx}
+                onClick={item.action}
+                className="flex items-center w-full px-4 py-3 transition-all duration-150"
+                style={{
+                  color: idx === 1 && location.includes("/projetos") ? "#C6A667" : "rgba(245,243,238,0.65)",
+                  background: idx === 1 && location.includes("/projetos") ? "rgba(198,166,103,0.07)" : "transparent",
+                  border: "none",
+                  borderLeft: idx === 1 && location.includes("/projetos") ? "2px solid #C6A667" : "2px solid transparent",
+                  textAlign: "left",
+                  whiteSpace: "nowrap",
+                  gap: "1rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = "#C6A667";
+                  e.currentTarget.style.backgroundColor = "rgba(198,166,103,0.07)";
+                }}
+                onMouseLeave={(e) => {
+                  const isPortfolio = idx === 1 && location.includes("/projetos");
+                  e.currentTarget.style.color = isPortfolio ? "#C6A667" : "rgba(245,243,238,0.65)";
+                  e.currentTarget.style.backgroundColor = isPortfolio ? "rgba(198,166,103,0.07)" : "transparent";
+                }}
+              >
+                <span style={{ flexShrink: 0, width: "18px" }}>{item.icon}</span>
+                {isOpen && (
+                  <span
+                    style={{
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: "0.8rem",
+                      fontWeight: 500,
+                      letterSpacing: "0.06em",
+                      textTransform: "uppercase",
+                      opacity: 1,
+                      transition: "opacity 0.2s ease",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
-        {/* Language toggle + expand hint */}
+        {/* Bottom: Language toggle + Admin link */}
         <div
           className="w-full px-4 py-4 flex flex-col gap-3"
           style={{ borderTop: "1px solid rgba(198,166,103,0.12)" }}
@@ -208,6 +238,37 @@ export default function Sidebar() {
                 }}
               >
                 {t.langSwitch === "EN" ? "English" : "Português"}
+              </span>
+            )}
+          </button>
+
+          {/* Admin link */}
+          <button
+            onClick={() => navigate("/admin")}
+            className="flex items-center gap-3 w-full transition-colors"
+            style={{
+              color: "rgba(245,243,238,0.3)",
+              background: "transparent",
+              border: "none",
+              textAlign: "left",
+              padding: "0.25rem 0",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(245,243,238,0.7)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(245,243,238,0.3)"; }}
+          >
+            <Settings size={14} style={{ flexShrink: 0, width: "18px" }} />
+            {isOpen && (
+              <span
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: "0.7rem",
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Admin
               </span>
             )}
           </button>

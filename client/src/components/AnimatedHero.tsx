@@ -1,8 +1,9 @@
 /**
  * Nova Habitar — Animated Hero Section
- * Animated word cycling: "Atuação que garante [previsibilidade|solidez|valor|excelência]"
- * Based on framer-motion spring animation pattern from pasted_content.txt
- * Design: Navy overlay on architecture photo, Montserrat Bold titles, Gold accent on animated word
+ * Slogan: "Consultoria para transformar projetos em ativos imobiliários"
+ * Animated words: [sólidos], [previsíveis], [lucrativos]
+ * Logo (sem texto) exibido no topo da seção
+ * Design: Navy overlay, Montserrat Bold, Gold accent on animated word
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -13,6 +14,10 @@ import { useLang } from "@/contexts/LangContext";
 const HERO_IMAGE =
   "https://cdn.abacus.ai/images/82408a85-1d28-4ae0-a10b-32c472db4848.png";
 
+// Logo sem texto "Nova Habitar" — apenas o símbolo N+H
+const LOGO_ICON =
+  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/CdFMmFddwYvgYETL.png?Expires=1804165690&Signature=cV49yLhvX-VzQthXEiyqjxknJOdktJRww9dPuGaPkTatBAoEsnT6oJ9se9dg9qZy~Jxt-cVENaLE9QSIdxo1qlLOxDLFnLH~zySFtoQpBMJOK~gLJDEPQ~jVYo~D2JA42wjFDjYIaXGnovRgXhWcqeq014kb1T-gQfkvF85ojHtjKO96-Hui9E5eofxvpD8PBlFl2aR-1RNIAxWMjPom7eut4Du3uPpE9m2P0ONoW8PGCSU8btcLm39Nm9b49Q1eNnECibg-DODDnJEFHzFCkxMlLCvvTYwXeUyjWTEgbYFCIX6cUXCYrFcLNp7g43H-rSPfNw1E0Vr6Yxxa~wveIw__&Key-Pair-Id=K2HSFNDJXOU9YS";
+
 export default function AnimatedHero() {
   const { t } = useLang();
   const [wordIndex, setWordIndex] = useState(0);
@@ -21,11 +26,10 @@ export default function AnimatedHero() {
   useEffect(() => {
     const id = setTimeout(() => {
       setWordIndex((prev) => (prev + 1) % words.length);
-    }, 2200);
+    }, 2400);
     return () => clearTimeout(id);
   }, [wordIndex, words]);
 
-  // Reset index when language changes
   useEffect(() => {
     setWordIndex(0);
   }, [words]);
@@ -49,15 +53,13 @@ export default function AnimatedHero() {
           alt="Empreendimento Nova Habitar"
           className="w-full h-full object-cover object-center"
         />
-        {/* Deep navy gradient — left heavy for text legibility */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(105deg, rgba(15,27,45,0.96) 0%, rgba(15,27,45,0.82) 55%, rgba(15,27,45,0.35) 100%)",
+              "linear-gradient(105deg, rgba(15,27,45,0.97) 0%, rgba(15,27,45,0.82) 55%, rgba(15,27,45,0.35) 100%)",
           }}
         />
-        {/* Subtle gold grain overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -72,39 +74,29 @@ export default function AnimatedHero() {
         className="relative z-10 container mx-auto"
         style={{ paddingTop: "8rem", paddingBottom: "6rem" }}
       >
-        <div style={{ maxWidth: "680px" }}>
-          {/* Tag */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.6875rem",
-              fontWeight: 600,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "#C6A667",
-              marginBottom: "1.5rem",
-            }}
-          >
-            <span
+        <div style={{ maxWidth: "700px" }}>
+
+          {/* Logo icon (sem texto "Nova Habitar") */}
+          <div style={{ marginBottom: "2.5rem" }}>
+            <img
+              src={LOGO_ICON}
+              alt="Nova Habitar"
               style={{
-                display: "block",
-                width: "1.5rem",
-                height: "1px",
-                backgroundColor: "#C6A667",
+                height: "72px",
+                width: "auto",
+                objectFit: "contain",
+                objectPosition: "left",
+                filter: "brightness(1.1)",
               }}
             />
-            NOVA HABITAR
           </div>
 
-          {/* Animated headline */}
+          {/* Slogan prefix line 1 */}
           <h1
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 800,
-              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              fontSize: "clamp(1.75rem, 4.5vw, 3rem)",
               letterSpacing: "0.03em",
               lineHeight: 1.15,
               color: "#F5F3EE",
@@ -114,11 +106,26 @@ export default function AnimatedHero() {
             {t.hero.prefix}
           </h1>
 
+          {/* Slogan prefix line 2 */}
+          <h1
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 800,
+              fontSize: "clamp(1.75rem, 4.5vw, 3rem)",
+              letterSpacing: "0.03em",
+              lineHeight: 1.15,
+              color: "#F5F3EE",
+              marginBottom: "0",
+            }}
+          >
+            {t.hero.prefix2}
+          </h1>
+
           {/* Animated word container */}
           <div
             style={{
               position: "relative",
-              height: "clamp(3rem, 7vw, 5rem)",
+              height: "clamp(2.5rem, 5.5vw, 3.75rem)",
               overflow: "hidden",
               marginBottom: "1.75rem",
             }}
@@ -134,7 +141,7 @@ export default function AnimatedHero() {
                   position: "absolute",
                   fontFamily: "'Montserrat', sans-serif",
                   fontWeight: 800,
-                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                  fontSize: "clamp(1.75rem, 4.5vw, 3rem)",
                   letterSpacing: "0.03em",
                   lineHeight: 1.2,
                   color: "#C6A667",
@@ -153,7 +160,7 @@ export default function AnimatedHero() {
             style={{
               fontFamily: "'Montserrat', sans-serif",
               fontWeight: 400,
-              fontSize: "clamp(0.9rem, 1.5vw, 1.05rem)",
+              fontSize: "clamp(0.875rem, 1.5vw, 1rem)",
               lineHeight: 1.75,
               color: "rgba(245,243,238,0.72)",
               marginBottom: "2.5rem",

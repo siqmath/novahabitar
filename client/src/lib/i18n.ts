@@ -22,8 +22,9 @@ export const translations = {
 
     // HERO
     hero: {
-      prefix: "Atuação que garante",
-      words: ["previsibilidade", "solidez", "valor", "excelência"],
+      prefix: "Consultoria para transformar",
+      prefix2: "projetos em ativos imobiliários",
+      words: ["sólidos", "previsíveis", "lucrativos"],
       subtitle:
         "Integramos planejamento, arquitetura, incorporação e execução com rigor técnico e governança em cada etapa do empreendimento.",
       cta1: "Ver portfólio",
@@ -219,8 +220,9 @@ export const translations = {
     langSwitch: "PT",
 
     hero: {
-      prefix: "Operations that ensure",
-      words: ["predictability", "solidity", "value", "excellence"],
+      prefix: "Consulting to transform projects",
+      prefix2: "into real estate assets",
+      words: ["solid", "predictable", "profitable"],
       subtitle:
         "We integrate planning, architecture, development and construction with technical rigor and governance at every stage of the project.",
       cta1: "View portfolio",
@@ -399,7 +401,7 @@ export const translations = {
 export type Translations = {
   nav: { home: string; projects: string; actuation: string; differentials: string; governance: string; sustainability: string; about: string; contact: string };
   langSwitch: string;
-  hero: { prefix: string; words: readonly string[]; subtitle: string; cta1: string; cta2: string; badge1: string; badge2: string; badge3: string };
+  hero: { prefix: string; prefix2: string; words: readonly string[]; subtitle: string; cta1: string; cta2: string; badge1: string; badge2: string; badge3: string };
   actuation: { tag: string; title: string; subtitle: string; items: readonly { title: string; desc: string }[] };
   projects: { tag: string; title: string; subtitle: string; viewAll: string; statusLabels: { delivered: string; inDevelopment: string; underConstruction: string }; items: readonly { status: string; title: string; location: string; desc: string; specs: readonly string[] }[] };
   differentials: { tag: string; title: string; subtitle: string; items: readonly { title: string; desc: string }[] };
