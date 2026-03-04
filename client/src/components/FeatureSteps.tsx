@@ -1,8 +1,8 @@
 /**
  * Nova Habitar — FeatureSteps (Atuação Section)
- * Based on feature-section.tsx from pasted_content_4.txt
- * Adapted: no next/image, uses standard <img>, Nova Habitar brand palette
- * Auto-cycles through actuation steps with progress bar and image transition
+ * Design: Motion-driven cards — same animation philosophy as Sustentabilidade
+ * NO images — pure typography + animated highlight + progress bar
+ * Auto-cycles through steps; click to select
  */
 
 import React, { useState, useEffect } from "react";
@@ -13,7 +13,7 @@ interface Feature {
   step: string;
   title?: string;
   content: string;
-  image: string;
+  image?: string; // kept for interface compat, not rendered
 }
 
 interface FeatureStepsProps {
@@ -27,7 +27,7 @@ export function FeatureSteps({
   features,
   className,
   title,
-  autoPlayInterval = 4000,
+  autoPlayInterval = 4500,
 }: FeatureStepsProps) {
   const [currentFeature, setCurrentFeature] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -47,170 +47,137 @@ export function FeatureSteps({
 
   return (
     <div className={cn("py-16 px-6 md:px-12", className)}>
-      <div className="max-w-6xl mx-auto w-full">
-        {title && (
-          <h2
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-              letterSpacing: "0.03em",
-              color: "#0F1B2D",
-              marginBottom: "3rem",
-            }}
-          >
-            {title}
-          </h2>
-        )}
-
-        <div className="flex flex-col md:grid md:grid-cols-2 gap-8 md:gap-14">
-          {/* Left: Steps list */}
-          <div className="order-2 md:order-1 space-y-6">
-            {features.map((feature, index) => (
+      <div className="max-w-5xl mx-auto w-full">
+        {/* Steps grid — same card approach as Sustentabilidade */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature, index) => {
+            const isActive = index === currentFeature;
+            return (
               <motion.div
                 key={index}
-                className="flex items-start gap-5 cursor-pointer"
-                initial={{ opacity: 0.3 }}
-                animate={{ opacity: index === currentFeature ? 1 : 0.35 }}
-                transition={{ duration: 0.4 }}
                 onClick={() => { setCurrentFeature(index); setProgress(0); }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{
+                  opacity: isActive ? 1 : 0.55,
+                  y: 0,
+                  scale: isActive ? 1.02 : 1,
+                }}
+                whileHover={{ opacity: 0.85, scale: 1.01 }}
+                transition={{ duration: 0.35, ease: "easeOut" }}
+                style={{
+                  cursor: "pointer",
+                  padding: "1.5rem",
+                  border: `1px solid ${isActive ? "rgba(198,166,103,0.6)" : "rgba(198,166,103,0.15)"}`,
+                  backgroundColor: isActive ? "rgba(198,166,103,0.06)" : "rgba(245,243,238,0.03)",
+                  position: "relative",
+                  overflow: "hidden",
+                  transition: "border-color 0.3s ease, background-color 0.3s ease",
+                }}
               >
-                {/* Step indicator */}
-                <div style={{ flexShrink: 0, marginTop: "2px" }}>
+                {/* Active: gold top border accent */}
+                {isActive && (
                   <motion.div
+                    layoutId="active-top-border"
                     style={{
-                      width: "36px",
-                      height: "36px",
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: "2px",
+                      backgroundColor: "#C6A667",
+                    }}
+                    transition={{ duration: 0.3 }}
+                  />
+                )}
+
+                {/* Step number */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "32px",
+                      height: "32px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: `2px solid ${index === currentFeature ? "#C6A667" : "#D8D6D1"}`,
-                      backgroundColor: index === currentFeature ? "#C6A667" : "transparent",
+                      border: `1.5px solid ${isActive ? "#C6A667" : "rgba(198,166,103,0.3)"}`,
+                      backgroundColor: isActive ? "#C6A667" : "transparent",
+                      flexShrink: 0,
                       transition: "all 0.3s ease",
                     }}
-                    animate={{ scale: index === currentFeature ? 1.08 : 1 }}
                   >
-                    {index < currentFeature ? (
-                      <span
-                        style={{
-                          fontFamily: "'Montserrat', sans-serif",
-                          fontWeight: 700,
-                          fontSize: "0.8rem",
-                          color: index === currentFeature ? "#0F1B2D" : "#C6A667",
-                        }}
-                      >
-                        ✓
-                      </span>
-                    ) : (
-                      <span
-                        style={{
-                          fontFamily: "'Montserrat', sans-serif",
-                          fontWeight: 700,
-                          fontSize: "0.75rem",
-                          color: index === currentFeature ? "#0F1B2D" : "#2B2F36",
-                        }}
-                      >
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                    )}
-                  </motion.div>
-                  {/* Progress bar under active step */}
-                  {index === currentFeature && (
-                    <div
+                    <span
                       style={{
-                        width: "2px",
-                        height: "40px",
-                        backgroundColor: "#E8E6E1",
-                        margin: "4px auto 0",
-                        overflow: "hidden",
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.7rem",
+                        color: isActive ? "#0F1B2D" : "rgba(198,166,103,0.7)",
+                        letterSpacing: "0.05em",
                       }}
                     >
-                      <div
-                        style={{
-                          width: "100%",
-                          height: `${progress}%`,
-                          backgroundColor: "#C6A667",
-                          transition: "height 0.1s linear",
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
+                      {index < currentFeature ? "✓" : String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
 
-                <div style={{ flex: 1 }}>
                   <h3
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
                       fontWeight: 700,
-                      fontSize: "1rem",
-                      letterSpacing: "0.02em",
-                      color: index === currentFeature ? "#0F1B2D" : "#2B2F36",
-                      marginBottom: "0.35rem",
+                      fontSize: "0.9rem",
+                      letterSpacing: "0.03em",
+                      color: isActive ? "#F5F3EE" : "rgba(245,243,238,0.65)",
+                      lineHeight: 1.3,
+                      transition: "color 0.3s ease",
                     }}
                   >
                     {feature.title || feature.step}
                   </h3>
-                  <p
+                </div>
+
+                <p
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 300,
+                    fontSize: "0.825rem",
+                    lineHeight: 1.7,
+                    color: isActive ? "rgba(245,243,238,0.75)" : "rgba(245,243,238,0.4)",
+                    transition: "color 0.3s ease",
+                  }}
+                >
+                  {feature.content}
+                </p>
+
+                {/* Progress bar at bottom of active card */}
+                {isActive && (
+                  <div
                     style={{
-                      fontFamily: "'Montserrat', sans-serif",
-                      fontWeight: 400,
-                      fontSize: "0.875rem",
-                      lineHeight: 1.65,
-                      color: "#2B2F36",
-                      opacity: index === currentFeature ? 0.85 : 0.55,
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: "2px",
+                      backgroundColor: "rgba(198,166,103,0.15)",
                     }}
                   >
-                    {feature.content}
-                  </p>
-                </div>
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${progress}%`,
+                        backgroundColor: "#C6A667",
+                        transition: "width 0.1s linear",
+                      }}
+                    />
+                  </div>
+                )}
               </motion.div>
-            ))}
-          </div>
-
-          {/* Right: Image */}
-          <div className="order-1 md:order-2 relative overflow-hidden" style={{ height: "420px" }}>
-            <AnimatePresence mode="wait">
-              {features.map(
-                (feature, index) =>
-                  index === currentFeature && (
-                    <motion.div
-                      key={index}
-                      className="absolute inset-0 overflow-hidden"
-                      initial={{ y: 60, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: -60, opacity: 0 }}
-                      transition={{ duration: 0.5, ease: "easeInOut" }}
-                    >
-                      <img
-                        src={feature.image}
-                        alt={feature.step}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                      {/* Gold corner accents */}
-                      <div style={{ position: "absolute", top: 0, left: 0, width: "2rem", height: "2px", backgroundColor: "#C6A667" }} />
-                      <div style={{ position: "absolute", top: 0, left: 0, width: "2px", height: "2rem", backgroundColor: "#C6A667" }} />
-                      <div style={{ position: "absolute", bottom: 0, right: 0, width: "2rem", height: "2px", backgroundColor: "#C6A667" }} />
-                      <div style={{ position: "absolute", bottom: 0, right: 0, width: "2px", height: "2rem", backgroundColor: "#C6A667" }} />
-                      {/* Gradient overlay */}
-                      <div
-                        style={{
-                          position: "absolute",
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: "40%",
-                          background: "linear-gradient(to top, rgba(245,243,238,0.5) 0%, transparent 100%)",
-                        }}
-                      />
-                    </motion.div>
-                  )
-              )}
-            </AnimatePresence>
-          </div>
+            );
+          })}
         </div>
       </div>
     </div>

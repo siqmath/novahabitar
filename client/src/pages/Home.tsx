@@ -77,8 +77,8 @@ export default function Home() {
       <AnimatedHero />
 
       {/* ── ATUAÇÃO ── */}
-      <section id="atuacao" style={{ backgroundColor: "#F5F3EE", padding: "0" }}>
-        <div style={{ backgroundColor: "#F5F3EE", paddingTop: "4rem", paddingBottom: "0" }}>
+      <section id="atuacao" style={{ backgroundColor: "#0F1B2D", padding: "0" }}>
+        <div style={{ backgroundColor: "#0F1B2D", paddingTop: "4rem", paddingBottom: "0" }}>
           <div className="container mx-auto">
             <SectionTag label={t.actuation.tag} />
             <h2
@@ -87,7 +87,7 @@ export default function Home() {
                 fontWeight: 800,
                 fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
                 letterSpacing: "0.035em",
-                color: "#0F1B2D",
+                color: "#F5F3EE",
                 marginBottom: "0.5rem",
               }}
             >
@@ -99,7 +99,7 @@ export default function Home() {
                 fontWeight: 400,
                 fontSize: "0.9375rem",
                 lineHeight: 1.7,
-                color: "#2B2F36",
+                color: "rgba(245,243,238,0.6)",
                 maxWidth: "560px",
               }}
             >
@@ -173,36 +173,9 @@ export default function Home() {
       {/* ── DIFERENCIAIS ── */}
       <section id="diferenciais" style={{ backgroundColor: "#E8E6E1", padding: "6rem 0" }}>
         <div className="container mx-auto">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: "4rem",
-              alignItems: "center",
-            }}
-          >
-            {/* Left: Image */}
-            <div style={{ position: "relative" }}>
-              <img
-                src={STRUCTURE_IMAGE}
-                alt="Estrutura Nova Habitar"
-                style={{ width: "100%", height: "480px", objectFit: "cover" }}
-              />
-              {/* Gold accent bar */}
-              <div
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  width: "3rem",
-                  height: "4px",
-                  backgroundColor: "#C6A667",
-                }}
-              />
-            </div>
-
-            {/* Right: Content */}
-            <div>
+          <div>
+            {/* Full-width content — no generic image */}
+            <div style={{ maxWidth: "720px" }}>
               <SectionTag label={t.differentials.tag} />
               <h2
                 style={{
@@ -283,7 +256,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── GOVERNANÇA ── */}
+      {/* —— GOVERNANÇA —— */}
       <section id="governanca" style={{ backgroundColor: "#0F1B2D", padding: "6rem 0" }}>
         <div className="container mx-auto">
           <div
@@ -408,9 +381,9 @@ export default function Home() {
                     marginBottom: "1.5rem",
                   }}
                 >
-                  Sistema de Gestão Integrado
+                  {t.governance.systemLabel}
                 </div>
-                {["Engenharia", "Jurídico", "Finanças", "Suprimentos", "Comercial", "Pós-Ocupação"].map((area, i) => (
+                {[...t.governance.systemItems].map((area, i) => (
                   <div
                     key={i}
                     style={{
@@ -629,16 +602,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <a
-                href="#contato"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
-                }}
-                className="nh-btn-outline-dark"
-              >
-                {t.about.cta} <ArrowRight size={14} />
-              </a>
+
             </div>
           </div>
         </div>
@@ -706,9 +670,13 @@ export default function Home() {
             >
               {t.cta.subtitle}
             </p>
-            <a href="mailto:contato@novahabitar.com" className="nh-btn-gold">
+            <button
+              onClick={() => navigate(`/${lang}/contato`)}
+              className="nh-btn-gold"
+              style={{ display: "flex", alignItems: "center", gap: "0.5rem", border: "none", cursor: "pointer" }}
+            >
               {t.cta.button} <ArrowRight size={14} />
-            </a>
+            </button>
           </div>
         </div>
       </section>

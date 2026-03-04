@@ -1,198 +1,157 @@
 /**
  * Nova Habitar — Timeline Component
- * Based on timeline.tsx from pasted_content_5.txt
- * Fixed: removed useScroll (causes "ref not hydrated" error in framer-motion)
- * Uses IntersectionObserver for scroll-driven animation instead
- * Reads from timelineStore, supports optional link to /projetos
+ * Design: Aceternity Timeline (pasted_content_6) adapted for Nova Habitar
+ * - Navy/Gold palette, Montserrat font
+ * - useScroll fixed: uses containerRef properly after mount
+ * - Supports optional photo per entry
+ * - Reads from timelineStore
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import {
+  useMotionValueEvent,
+  useScroll,
+  useTransform,
+  motion,
+} from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { timelineStore, type TimelineEntry } from "@/lib/store";
 import { useLang } from "@/contexts/LangContext";
 import { useLocation } from "wouter";
 
-function TimelineItem({
-  item,
-  index,
-  lang,
-  navigate,
-}: {
-  item: TimelineEntry;
-  index: number;
-  lang: string;
-  navigate: (path: string) => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px" });
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ opacity: 0, x: -24 }}
-      animate={isInView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
-      style={{
-        display: "flex",
-        justifyContent: "flex-start",
-        paddingTop: index === 0 ? "3rem" : "3.5rem",
-        gap: "2rem",
-      }}
-    >
-      {/* Left: dot + date */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          minWidth: "72px",
-          flexShrink: 0,
-        }}
-      >
-        <div
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "50%",
-            backgroundColor: "#0F1B2D",
-            border: "2px solid rgba(198,166,103,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-          }}
-        >
-          <div
-            style={{
-              width: "9px",
-              height: "9px",
-              borderRadius: "50%",
-              backgroundColor: "#C6A667",
-            }}
-          />
-        </div>
-        <span
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 700,
-            fontSize: "0.7rem",
-            letterSpacing: "0.08em",
-            color: "rgba(198,166,103,0.7)",
-            marginTop: "0.45rem",
-            textAlign: "center",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {item.date}
-        </span>
-      </div>
-
-      {/* Right: content */}
-      <div style={{ flex: 1, paddingBottom: "1rem" }}>
-        <h3
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 700,
-            fontSize: "0.95rem",
-            letterSpacing: "0.03em",
-            color: "#F5F3EE",
-            marginBottom: "0.45rem",
-            lineHeight: 1.35,
-          }}
-        >
-          {item.title}
-          {item.link && (
-            <button
-              onClick={() => navigate(item.link!)}
-              style={{
-                marginLeft: "0.5rem",
-                color: "#C6A667",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                verticalAlign: "middle",
-              }}
-              title={lang === "en" ? "View project" : "Ver projeto"}
-            >
-              <ExternalLink size={12} />
-            </button>
-          )}
-        </h3>
-        <p
-          style={{
-            fontFamily: "'Montserrat', sans-serif",
-            fontWeight: 300,
-            fontSize: "0.825rem",
-            lineHeight: 1.7,
-            color: "rgba(245,243,238,0.52)",
-          }}
-        >
-          {item.description}
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
 export function NHTimeline() {
   const { lang } = useLang();
   const [, navigate] = useLocation();
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const ref = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [lineHeight, setLineHeight] = useState(0);
+  const [height, setHeight] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setEntries(timelineStore.getAll());
+    setMounted(true);
   }, []);
 
-  // Measure container height after entries load
   useEffect(() => {
-    if (containerRef.current && entries.length > 0) {
-      const observer = new ResizeObserver(() => {
-        if (containerRef.current) {
-          setLineHeight(containerRef.current.scrollHeight);
-        }
-      });
-      observer.observe(containerRef.current);
-      return () => observer.disconnect();
+    if (ref.current && mounted) {
+      const rect = ref.current.getBoundingClientRect();
+      setHeight(rect.height);
     }
-  }, [entries]);
+  }, [entries, mounted]);
 
-  if (entries.length === 0) return null;
+  const { scrollYProgress } = useScroll({
+    target: mounted ? containerRef : undefined,
+    offset: ["start 10%", "end 50%"],
+  });
+
+  const heightTransform = useTransform(scrollYProgress, [0, 1], [0, height]);
+  const opacityTransform = useTransform(scrollYProgress, [0, 0.1], [0, 1]);
+
+  if (!mounted || entries.length === 0) return null;
 
   return (
     <div
-      style={{
-        width: "100%",
-        backgroundColor: "#0F1B2D",
-        fontFamily: "'Montserrat', sans-serif",
-      }}
+      className="w-full font-sans"
+      ref={containerRef}
+      style={{ backgroundColor: "#0F1B2D" }}
     >
-      <div ref={containerRef} className="relative max-w-xl mx-auto pb-16 px-6">
+      <div ref={ref} className="relative max-w-3xl mx-auto pb-20 px-6 md:px-10">
         {entries.map((item, index) => (
-          <TimelineItem
+          <div
             key={item.id}
-            item={item}
-            index={index}
-            lang={lang}
-            navigate={navigate}
-          />
+            className="flex justify-start pt-10 md:pt-16 md:gap-10"
+          >
+            {/* Left: sticky dot + date */}
+            <div className="sticky flex flex-col md:flex-row z-40 items-center top-40 self-start max-w-xs lg:max-w-sm md:w-full">
+              <div
+                className="h-9 absolute left-3 md:left-3 w-9 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: "#0F1B2D", border: "2px solid rgba(198,166,103,0.35)" }}
+              >
+                <div
+                  className="h-3 w-3 rounded-full"
+                  style={{ backgroundColor: "#C6A667" }}
+                />
+              </div>
+              <h3
+                className="hidden md:block text-xl md:pl-20 md:text-4xl font-bold"
+                style={{ color: "rgba(198,166,103,0.55)", fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {item.date}
+              </h3>
+            </div>
+
+            {/* Right: content */}
+            <div className="relative pl-20 pr-4 md:pl-4 w-full">
+              <h3
+                className="md:hidden block text-xl mb-3 text-left font-bold"
+                style={{ color: "rgba(198,166,103,0.55)", fontFamily: "'Montserrat', sans-serif" }}
+              >
+                {item.date}
+              </h3>
+
+              <div className="mb-2 flex items-center gap-2">
+                <h4
+                  className="font-bold text-base"
+                  style={{ color: "#F5F3EE", fontFamily: "'Montserrat', sans-serif", letterSpacing: "0.02em" }}
+                >
+                  {item.title}
+                </h4>
+                {item.link && (
+                  <button
+                    onClick={() => navigate(item.link!)}
+                    className="opacity-60 hover:opacity-100 transition-opacity"
+                    style={{ color: "#C6A667", background: "none", border: "none", cursor: "pointer" }}
+                    title={lang === "en" ? "View project" : "Ver projeto"}
+                  >
+                    <ExternalLink size={13} />
+                  </button>
+                )}
+              </div>
+
+              <p
+                className="text-sm leading-relaxed mb-4"
+                style={{ color: "rgba(245,243,238,0.5)", fontFamily: "'Montserrat', sans-serif", fontWeight: 300 }}
+              >
+                {item.description}
+              </p>
+
+              {/* Optional photo */}
+              {item.photo && (
+                <div className="mt-3 mb-2">
+                  <img
+                    src={item.photo}
+                    alt={item.title}
+                    className="rounded-lg object-cover w-full max-w-sm"
+                    style={{
+                      height: "160px",
+                      boxShadow: "0 0 24px rgba(0,0,0,0.3), 0 1px 1px rgba(0,0,0,0.1)",
+                      border: "1px solid rgba(198,166,103,0.15)",
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         ))}
 
-        {/* Static vertical line */}
+        {/* Animated vertical line — Aceternity style */}
         <div
+          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px]"
           style={{
-            position: "absolute",
-            left: "calc(1.5rem + 16px)",
-            top: "3rem",
-            bottom: "4rem",
-            width: "2px",
-            background:
-              "linear-gradient(to bottom, transparent 0%, rgba(198,166,103,0.2) 10%, rgba(198,166,103,0.2) 90%, transparent 100%)",
-            pointerEvents: "none",
+            height: `${height}px`,
+            background: "linear-gradient(to bottom, transparent 0%, rgba(198,166,103,0.2) 10%, rgba(198,166,103,0.2) 90%, transparent 100%)",
           }}
-        />
+        >
+          <motion.div
+            style={{
+              height: heightTransform,
+              opacity: opacityTransform,
+              background: "linear-gradient(to bottom, #C6A667 0%, rgba(198,166,103,0.4) 60%, transparent 100%)",
+            }}
+            className="absolute inset-x-0 top-0 w-[2px] rounded-full"
+          />
+        </div>
       </div>
     </div>
   );

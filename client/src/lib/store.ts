@@ -1,79 +1,152 @@
 /**
  * Nova Habitar — Global Data Store
- * Manages projects and timeline entries via localStorage
- * Provides typed interfaces and CRUD helpers
+ * Manages projects, timeline entries, and contact info via localStorage
  */
 
 export type ProjectStatus = "previsto" | "em-desenvolvimento" | "em-obras" | "entregue";
+export type ProjectType = "residencial" | "comercial" | "uso-misto";
+
+export interface ProjectActuation {
+  planning: string;
+  architecture: string;
+  incorporation: string;
+  construction: string;
+}
 
 export interface Project {
   id: string;
+  slug: string;
   title: string;
   location: string;
   description: string;
-  techniques: string[]; // optional tags
+  longDescription: string; // "Sobre o projeto"
+  techniques: string[]; // tags / diferenciais
   images: string[]; // up to 5 URLs
-  coverIndex: number; // which image is the cover
+  coverIndex: number;
   status: ProjectStatus;
-  featured: boolean; // appears on home page
+  type: ProjectType;
+  featured: boolean;
+  // Technical data
+  typology: string;       // ex: "Salas comerciais de 30 a 150 m²"
+  builtArea: string;      // ex: "12.000 m²"
+  units: string;          // ex: "120 unidades"
+  actuation: ProjectActuation;
   createdAt: string;
 }
 
 export interface TimelineEntry {
   id: string;
-  date: string; // e.g. "2024", "Mar 2023"
+  date: string;
   title: string;
   description: string;
-  link?: string; // optional link to /projetos/:id
+  photo?: string; // optional photo URL
+  link?: string;
   createdAt: string;
+}
+
+export interface ContactInfo {
+  email: string;
+  phone: string;
+  whatsapp: string;
+  address: string;
+  instagram: string;
+  linkedin: string;
 }
 
 // ── Default seed data ──────────────────────────────────────────────────────
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
 const DEFAULT_PROJECTS: Project[] = [
   {
     id: "proj-1",
+    slug: "residencial-jardim-das-acacias",
     title: "Residencial Jardim das Acácias",
     location: "São Gonçalo — Alcântara",
     description:
       "Empreendimento residencial entregue com alto padrão de acabamento e conformidade regulatória. Laje protendida, tratamento acústico e regularidade fundiária garantida.",
+    longDescription:
+      "O Residencial Jardim das Acácias representa o compromisso da Nova Habitar com a entrega de empreendimentos que combinam qualidade técnica, regularidade fundiária e padrão de acabamento superior. Desenvolvido em São Gonçalo, o projeto atende famílias que buscam qualidade de vida com segurança patrimonial.",
     techniques: ["Laje protendida", "Tratamento acústico", "Regularidade fundiária"],
     images: [
       "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png",
     ],
     coverIndex: 0,
     status: "entregue",
+    type: "residencial",
     featured: true,
+    typology: "Apartamentos de 2 e 3 quartos",
+    builtArea: "8.500 m²",
+    units: "96 unidades",
+    actuation: {
+      planning: "Análise de viabilidade e estruturação do empreendimento com foco no mercado residencial de médio-alto padrão.",
+      architecture: "Projeto com fachada contemporânea, áreas de lazer integradas e especificação eficiente de materiais.",
+      incorporation: "Regularização fundiária, registro de incorporação e estruturação de SPE.",
+      construction: "Execução com laje protendida, tratamento acústico e controle rigoroso de qualidade.",
+    },
     createdAt: "2023-06-01",
   },
   {
     id: "proj-2",
+    slug: "edificio-corporativo-atlantico",
     title: "Edifício Corporativo Atlântico",
     location: "Niterói — Centro",
     description:
       "Edifício comercial de alto padrão com infraestrutura corporativa completa e gestão integrada. Eficiência energética, automação predial e certificação PBQP-H.",
+    longDescription:
+      "O Edifício Corporativo Atlântico será um marco na arquitetura comercial de Niterói. Com salas de diversos tamanhos, o empreendimento atende desde profissionais liberais até empresas de médio porte. O projeto conta com infraestrutura de ponta, incluindo auditório, salas de reunião compartilhadas e estacionamento rotativo.",
     techniques: ["Eficiência energética", "Automação predial", "Certificação PBQP-H"],
     images: [
       "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png",
     ],
     coverIndex: 0,
     status: "em-desenvolvimento",
+    type: "comercial",
     featured: true,
+    typology: "Salas comerciais de 30 a 150 m²",
+    builtArea: "12.000 m²",
+    units: "120 unidades",
+    actuation: {
+      planning: "Análise de viabilidade e estruturação do empreendimento com foco no mercado corporativo.",
+      architecture: "Projeto contemporâneo com fachada envidraçada e soluções de eficiência energética.",
+      incorporation: "Estruturação de SPE e governança com investidores.",
+      construction: "Planejamento de obra com foco em qualidade e certificações.",
+    },
     createdAt: "2024-01-15",
   },
   {
     id: "proj-3",
+    slug: "residencial-mirante-do-vale",
     title: "Residencial Mirante do Vale",
     location: "São Gonçalo — Centro",
     description:
       "Residencial de médio e alto padrão com foco em eficiência de planta e valorização patrimonial. Planta eficiente, controle de custos e gestão por ERP.",
+    longDescription:
+      "O Residencial Mirante do Vale foi concebido para maximizar a eficiência de planta e a valorização patrimonial em uma das regiões de maior crescimento de São Gonçalo. O projeto integra soluções construtivas modernas com gestão por ERP para controle rigoroso de custos e prazos.",
     techniques: ["Planta eficiente", "Controle de custos", "Gestão por ERP"],
     images: [
       "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png",
     ],
     coverIndex: 0,
     status: "em-obras",
+    type: "residencial",
     featured: true,
+    typology: "Apartamentos de 2 quartos",
+    builtArea: "6.200 m²",
+    units: "72 unidades",
+    actuation: {
+      planning: "Estruturação de cronograma, orçamento e gestão de riscos com PMO dedicado.",
+      architecture: "Projeto com foco em eficiência de planta, ventilação natural e aproveitamento de iluminação.",
+      incorporation: "Registro de incorporação e estruturação de financiamento junto a agentes bancários.",
+      construction: "Execução com controle de custos por ERP e foco em QSMS.",
+    },
     createdAt: "2024-03-10",
   },
 ];
@@ -121,10 +194,20 @@ const DEFAULT_TIMELINE: TimelineEntry[] = [
   },
 ];
 
+const DEFAULT_CONTACT: ContactInfo = {
+  email: "contato@novahabitar.com",
+  phone: "+55 21 99999-0000",
+  whatsapp: "+5521999990000",
+  address: "São Gonçalo, RJ — Brasil",
+  instagram: "https://instagram.com/novahabitar",
+  linkedin: "https://linkedin.com/company/novahabitar",
+};
+
 // ── Storage helpers ────────────────────────────────────────────────────────
 
-const PROJECTS_KEY = "nh_projects";
-const TIMELINE_KEY = "nh_timeline";
+const PROJECTS_KEY = "nh_projects_v2";
+const TIMELINE_KEY = "nh_timeline_v2";
+const CONTACT_KEY = "nh_contact";
 
 function loadProjects(): Project[] {
   try {
@@ -150,13 +233,27 @@ function saveTimeline(entries: TimelineEntry[]): void {
   localStorage.setItem(TIMELINE_KEY, JSON.stringify(entries));
 }
 
+function loadContact(): ContactInfo {
+  try {
+    const raw = localStorage.getItem(CONTACT_KEY);
+    if (raw) return JSON.parse(raw) as ContactInfo;
+  } catch {}
+  return DEFAULT_CONTACT;
+}
+
+function saveContact(info: ContactInfo): void {
+  localStorage.setItem(CONTACT_KEY, JSON.stringify(info));
+}
+
 // ── Public API ─────────────────────────────────────────────────────────────
 
 export const projectStore = {
   getAll: (): Project[] => loadProjects(),
   getFeatured: (): Project[] => loadProjects().filter((p) => p.featured),
   getById: (id: string): Project | undefined => loadProjects().find((p) => p.id === id),
+  getBySlug: (slug: string): Project | undefined => loadProjects().find((p) => p.slug === slug),
   save: (project: Project): void => {
+    if (!project.slug) project.slug = slugify(project.title);
     const all = loadProjects();
     const idx = all.findIndex((p) => p.id === project.id);
     if (idx >= 0) all[idx] = project;
@@ -189,8 +286,18 @@ export const timelineStore = {
   },
 };
 
+export const contactStore = {
+  get: (): ContactInfo => loadContact(),
+  save: (info: ContactInfo): void => saveContact(info),
+  reset: (): void => saveContact(DEFAULT_CONTACT),
+};
+
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export function generateSlug(title: string): string {
+  return slugify(title);
 }
 
 export const STATUS_LABELS: Record<ProjectStatus, string> = {
@@ -205,4 +312,16 @@ export const STATUS_LABELS_EN: Record<ProjectStatus, string> = {
   "em-desenvolvimento": "In Development",
   "em-obras": "Under Construction",
   entregue: "Delivered",
+};
+
+export const TYPE_LABELS: Record<ProjectType, string> = {
+  residencial: "Residencial",
+  comercial: "Comercial",
+  "uso-misto": "Uso Misto",
+};
+
+export const TYPE_LABELS_EN: Record<ProjectType, string> = {
+  residencial: "Residential",
+  comercial: "Commercial",
+  "uso-misto": "Mixed Use",
 };

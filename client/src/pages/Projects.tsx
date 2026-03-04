@@ -30,6 +30,7 @@ export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
+  const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState<string>("all");
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [imageIndex, setImageIndex] = useState(0);
@@ -54,15 +55,28 @@ export default function Projects() {
         p.location.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === "all" || p.status === statusFilter;
       const matchLocation = locationFilter === "all" || p.location === locationFilter;
-      return matchSearch && matchStatus && matchLocation;
+      const matchType = typeFilter.length === 0 || typeFilter.includes(p.type);
+      return matchSearch && matchStatus && matchLocation && matchType;
     });
-  }, [projects, search, statusFilter, locationFilter]);
+  }, [projects, search, statusFilter, typeFilter, locationFilter]);
 
   const statuses: (ProjectStatus | "all")[] = ["all", "previsto", "em-desenvolvimento", "em-obras", "entregue"];
 
   const statusLabel = (s: ProjectStatus | "all") => {
     if (s === "all") return lang === "en" ? "All projects" : "Todos os projetos";
     return lang === "en" ? STATUS_LABELS_EN[s] : STATUS_LABELS[s];
+  };
+
+  const types = [
+    { value: "residencial", labelPt: "Residencial", labelEn: "Residential" },
+    { value: "comercial", labelPt: "Comercial", labelEn: "Commercial" },
+    { value: "uso-misto", labelPt: "Uso Misto", labelEn: "Mixed Use" },
+  ];
+
+  const toggleType = (value: string) => {
+    setTypeFilter((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
   };
 
   const openProject = (p: Project) => {
@@ -211,28 +225,61 @@ export default function Projects() {
               ))}
             </select>
 
-            {/* Status filters */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+            {/* Status filter — select dropdown */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | "all")}
+              style={{
+                padding: "0.6rem 1rem",
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: "0.8rem",
+                border: "1px solid #D8D6D1",
+                backgroundColor: "#F5F3EE",
+                color: NAVY,
+                cursor: "pointer",
+                outline: "none",
+                flex: "0 0 auto",
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = `0 0 0 2px rgba(198,166,103,0.15)`; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "#D8D6D1"; e.currentTarget.style.boxShadow = "none"; }}
+            >
               {statuses.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setStatusFilter(s)}
+                <option key={s} value={s}>{statusLabel(s)}</option>
+              ))}
+            </select>
+
+            {/* Type filter — checkboxes */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
+              {types.map((tp) => (
+                <label
+                  key={tp.value}
                   style={{
-                    padding: "0.5rem 0.9rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
                     fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    border: `1px solid ${statusFilter === s ? GOLD : "#D8D6D1"}`,
-                    backgroundColor: statusFilter === s ? GOLD : "transparent",
-                    color: statusFilter === s ? NAVY : "#2B2F36",
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    color: typeFilter.includes(tp.value) ? NAVY : "#555",
                     cursor: "pointer",
-                    transition: "all 0.2s ease",
+                    userSelect: "none",
+                    transition: "color 0.15s ease",
                   }}
                 >
-                  {statusLabel(s)}
-                </button>
+                  <input
+                    type="checkbox"
+                    checked={typeFilter.includes(tp.value)}
+                    onChange={() => toggleType(tp.value)}
+                    style={{
+                      accentColor: GOLD,
+                      width: "14px",
+                      height: "14px",
+                      cursor: "pointer",
+                    }}
+                  />
+                  {lang === "en" ? tp.labelEn : tp.labelPt}
+                </label>
               ))}
             </div>
           </div>

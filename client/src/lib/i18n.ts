@@ -139,6 +139,8 @@ export const translations = {
         "Gestão de riscos com planejamento e contingência estruturados",
         "Certificações em andamento: PBQP-H, ISO 9001, ISO 14001",
       ],
+      systemLabel: "Sistema de Gestão Integrado",
+      systemItems: ["Engenharia", "Jurídico", "Finanças", "Suprimentos", "Comercial", "Pós-Ocupação"],
       cta: "Conheça nossa estrutura",
     },
 
@@ -184,14 +186,14 @@ export const translations = {
         "Ser referência em incorporação e desenvolvimento urbano sustentável no Brasil.",
       values: "Valores",
       valuesText: "Ética, responsabilidade técnica, inovação e sustentabilidade.",
-      cta: "Ver história completa",
+      cta: "",
     },
 
     // CTA
     cta: {
       title: "Vamos estruturar o seu próximo investimento?",
       subtitle:
-        "Apresentamos cenários, riscos e possibilidades com base técnica e visão de mercado. Sem promessas — apenas estrutura e método.",
+        "Apresentamos cenários e possibilidades com base técnica e visão de mercado - com gestão de risco sólida",
       button: "Agendar conversa técnica",
     },
 
@@ -333,6 +335,8 @@ export const translations = {
         "Risk management with structured planning and contingency",
         "Ongoing certifications: PBQP-H, ISO 9001, ISO 14001",
       ],
+      systemLabel: "Integrated Management System",
+      systemItems: ["Engineering", "Legal", "Finance", "Procurement", "Commercial", "Post-Occupancy"],
       cta: "Learn about our structure",
     },
 
@@ -376,13 +380,13 @@ export const translations = {
         "To be a reference in real estate development and sustainable urban development in Brazil.",
       values: "Values",
       valuesText: "Ethics, technical responsibility, innovation and sustainability.",
-      cta: "View full history",
+      cta: "",
     },
 
     cta: {
       title: "Let's structure your next development?",
       subtitle:
-        "We present scenarios, risks and possibilities grounded in technical analysis and market insight. No promises — only structure and method.",
+        "We present scenarios and possibilities grounded in technical analysis and market insight - with solid risk management",
       button: "Schedule a technical meeting",
     },
 
@@ -397,6 +401,8 @@ export const translations = {
   },
 } as const;
 
+// Contact page translations added inline in Contact.tsx via useLang hook
+
 // Use a loose type so both PT and EN are assignable
 export type Translations = {
   nav: { home: string; projects: string; actuation: string; differentials: string; governance: string; sustainability: string; about: string; contact: string };
@@ -405,7 +411,7 @@ export type Translations = {
   actuation: { tag: string; title: string; subtitle: string; items: readonly { title: string; desc: string }[] };
   projects: { tag: string; title: string; subtitle: string; viewAll: string; statusLabels: { delivered: string; inDevelopment: string; underConstruction: string }; items: readonly { status: string; title: string; location: string; desc: string; specs: readonly string[] }[] };
   differentials: { tag: string; title: string; subtitle: string; items: readonly { title: string; desc: string }[] };
-  governance: { tag: string; title: string; subtitle: string; items: readonly string[]; cta: string };
+  governance: { tag: string; title: string; subtitle: string; items: readonly string[]; systemLabel: string; systemItems: readonly string[]; cta: string };
   sustainability: { tag: string; title: string; subtitle: string; items: readonly { title: string; desc: string }[] };
   about: { tag: string; title: string; body1: string; body2: string; mission: string; missionText: string; vision: string; visionText: string; values: string; valuesText: string; cta: string };
   cta: { title: string; subtitle: string; button: string };

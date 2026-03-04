@@ -1,553 +1,298 @@
 /**
- * Nova Habitar — Página Administrativa (/admin)
- * Gerencia: Projetos (CRUD) e Linha do Tempo (CRUD)
- * Projetos: título, localidade, descrição, técnicas, até 5 imagens, capa, status, favorito
- * Linha do tempo: data, título, descrição, link opcional
- * Dados persistidos em localStorage via store.ts
+ * Nova Habitar — Admin Panel (/admin)
+ * Manages: Projects (all fields), Timeline (with photo), Contact Info
+ * Design: Navy/Gold, Montserrat, clean CRUD UI
  */
 
-import { useState, useEffect, useRef } from "react";
-import {
-  Plus, Trash2, Edit2, Save, X, Star, StarOff,
-  Image as ImageIcon, ChevronDown, ChevronUp, Clock, Briefcase, ArrowLeft
-} from "lucide-react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  projectStore, timelineStore, generateId,
-  STATUS_LABELS, type Project, type ProjectStatus, type TimelineEntry
+  Plus, Pencil, Trash2, Save, X, Star, StarOff,
+  FolderOpen, Clock, Mail, ArrowLeft, Image as ImageIcon,
+  Link as LinkIcon, CheckCircle
+} from "lucide-react";
+import {
+  projectStore, timelineStore, contactStore,
+  generateId, generateSlug,
+  STATUS_LABELS, TYPE_LABELS,
+  type Project, type TimelineEntry, type ContactInfo,
+  type ProjectStatus, type ProjectType
 } from "@/lib/store";
 import { useLocation } from "wouter";
 
-const GOLD = "#C6A667";
-const NAVY = "#0F1B2D";
-
-type Tab = "projects" | "timeline";
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
+  slug: "",
   title: "",
   location: "",
   description: "",
+  longDescription: "",
   techniques: [],
   images: [],
   coverIndex: 0,
   status: "previsto",
+  type: "residencial",
   featured: false,
+  typology: "",
+  builtArea: "",
+  units: "",
+  actuation: {
+    planning: "",
+    architecture: "",
+    incorporation: "",
+    construction: "",
+  },
 };
 
 const EMPTY_TIMELINE: Omit<TimelineEntry, "id" | "createdAt"> = {
   date: "",
   title: "",
   description: "",
+  photo: "",
   link: "",
 };
 
-// ── Shared input style ──────────────────────────────────────────────────────
-const inputStyle: React.CSSProperties = {
+const EMPTY_CONTACT: ContactInfo = {
+  email: "",
+  phone: "",
+  whatsapp: "",
+  address: "",
+  instagram: "",
+  linkedin: "",
+};
+
+// ── Input styles ───────────────────────────────────────────────────────────
+
+const inputCls: React.CSSProperties = {
   width: "100%",
-  padding: "0.6rem 0.75rem",
+  padding: "0.65rem 0.85rem",
+  backgroundColor: "rgba(245,243,238,0.04)",
+  border: "1px solid rgba(198,166,103,0.2)",
+  color: "#F5F3EE",
   fontFamily: "'Montserrat', sans-serif",
-  fontSize: "0.8rem",
-  border: "1px solid #D8D6D1",
-  backgroundColor: "#F5F3EE",
-  color: NAVY,
+  fontSize: "0.825rem",
   outline: "none",
 };
 
-const labelStyle: React.CSSProperties = {
+const labelCls: React.CSSProperties = {
   fontFamily: "'Montserrat', sans-serif",
-  fontSize: "0.65rem",
+  fontSize: "0.62rem",
   fontWeight: 700,
-  letterSpacing: "0.1em",
+  letterSpacing: "0.14em",
   textTransform: "uppercase" as const,
-  color: "#888",
+  color: "rgba(245,243,238,0.4)",
   display: "block",
-  marginBottom: "0.35rem",
+  marginBottom: "0.3rem",
 };
 
-// ── Project Form ────────────────────────────────────────────────────────────
-function ProjectForm({
-  initial,
-  onSave,
-  onCancel,
-}: {
-  initial?: Project;
-  onSave: (p: Project) => void;
-  onCancel: () => void;
-}) {
-  const [form, setForm] = useState<Omit<Project, "id" | "createdAt">>(
-    initial ? { ...initial } : { ...EMPTY_PROJECT }
-  );
-  const [techInput, setTechInput] = useState("");
-  const [imageInput, setImageInput] = useState("");
-
-  const set = (key: keyof typeof form, val: unknown) =>
-    setForm((f) => ({ ...f, [key]: val }));
-
-  const addTech = () => {
-    const t = techInput.trim();
-    if (t && !form.techniques.includes(t)) {
-      set("techniques", [...form.techniques, t]);
-    }
-    setTechInput("");
+function btnStyle(variant: "gold" | "ghost" | "ghost-sm" | "danger-sm"): React.CSSProperties {
+  const base: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: "0.35rem",
+    border: "none",
+    cursor: "pointer",
+    fontFamily: "'Montserrat', sans-serif",
+    fontWeight: 700,
+    letterSpacing: "0.08em",
+    textTransform: "uppercase",
+    transition: "all 0.2s ease",
   };
+  if (variant === "gold") return { ...base, backgroundColor: "#C6A667", color: "#0F1B2D", fontSize: "0.72rem", padding: "0.55rem 1.1rem" };
+  if (variant === "ghost") return { ...base, backgroundColor: "transparent", color: "rgba(245,243,238,0.5)", fontSize: "0.72rem", padding: "0.55rem 1rem", border: "1px solid rgba(198,166,103,0.2)" };
+  if (variant === "ghost-sm") return { ...base, backgroundColor: "transparent", color: "rgba(245,243,238,0.4)", fontSize: "0.7rem", padding: "0.3rem 0.5rem", border: "1px solid rgba(198,166,103,0.15)" };
+  if (variant === "danger-sm") return { ...base, backgroundColor: "transparent", color: "rgba(220,80,80,0.6)", fontSize: "0.7rem", padding: "0.3rem 0.5rem", border: "1px solid rgba(220,80,80,0.2)" };
+  return base;
+}
 
-  const removeTech = (t: string) =>
-    set("techniques", form.techniques.filter((x) => x !== t));
-
-  const addImage = () => {
-    const url = imageInput.trim();
-    if (url && form.images.length < 5) {
-      set("images", [...form.images, url]);
-    }
-    setImageInput("");
-  };
-
-  const removeImage = (i: number) => {
-    const imgs = form.images.filter((_, idx) => idx !== i);
-    set("images", imgs);
-    if (form.coverIndex >= imgs.length) set("coverIndex", 0);
-  };
-
-  const handleSave = () => {
-    if (!form.title.trim() || !form.location.trim()) return;
-    const project: Project = {
-      id: initial?.id || generateId(),
-      createdAt: initial?.createdAt || new Date().toISOString(),
-      ...form,
-    };
-    onSave(project);
-  };
-
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E6E1", padding: "1.5rem" }}>
-      <h3
-        style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 700,
-          fontSize: "0.95rem",
-          color: NAVY,
-          marginBottom: "1.25rem",
-        }}
-      >
-        {initial ? "Editar projeto" : "Novo projeto"}
-      </h3>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-        <div>
-          <label style={labelStyle}>Título *</label>
-          <input
-            style={inputStyle}
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            placeholder="Ex: Residencial Jardim das Acácias"
-          />
-        </div>
-        <div>
-          <label style={labelStyle}>Localidade *</label>
-          <input
-            style={inputStyle}
-            value={form.location}
-            onChange={(e) => set("location", e.target.value)}
-            placeholder="Ex: São Gonçalo — Alcântara"
-          />
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label style={labelStyle}>Descrição</label>
-        <textarea
-          style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }}
-          value={form.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder="Descrição do empreendimento..."
-        />
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1rem" }}>
-        <div>
-          <label style={labelStyle}>Status</label>
-          <select
-            style={inputStyle}
-            value={form.status}
-            onChange={(e) => set("status", e.target.value as ProjectStatus)}
-          >
-            {(["previsto", "em-desenvolvimento", "em-obras", "entregue"] as ProjectStatus[]).map((s) => (
-              <option key={s} value={s}>{STATUS_LABELS[s]}</option>
-            ))}
-          </select>
-        </div>
-        <div style={{ display: "flex", alignItems: "flex-end", paddingBottom: "0.1rem" }}>
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.5rem",
-              cursor: "pointer",
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              color: NAVY,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={form.featured}
-              onChange={(e) => set("featured", e.target.checked)}
-              style={{ accentColor: GOLD, width: "16px", height: "16px" }}
-            />
-            <Star size={14} color={form.featured ? GOLD : "#888"} />
-            Destaque na página inicial
-          </label>
-        </div>
-      </div>
-
-      {/* Técnicas */}
-      <div style={{ marginBottom: "1rem" }}>
-        <label style={labelStyle}>Técnicas utilizadas (opcional)</label>
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
-          <input
-            style={{ ...inputStyle, flex: 1 }}
-            value={techInput}
-            onChange={(e) => setTechInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTech())}
-            placeholder="Ex: Laje protendida"
-          />
-          <button
-            onClick={addTech}
-            style={{
-              padding: "0.6rem 1rem",
-              backgroundColor: NAVY,
-              color: "#F5F3EE",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.75rem",
-              fontWeight: 600,
-            }}
-          >
-            Adicionar
-          </button>
-        </div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-          {form.techniques.map((t) => (
-            <span
-              key={t}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.3rem",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                letterSpacing: "0.07em",
-                textTransform: "uppercase",
-                color: NAVY,
-                border: `1px solid ${GOLD}`,
-                padding: "0.25rem 0.6rem",
-              }}
-            >
-              {t}
-              <button onClick={() => removeTech(t)} style={{ background: "none", border: "none", cursor: "pointer", color: "#888", padding: 0, lineHeight: 1 }}>
-                <X size={10} />
-              </button>
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* Imagens */}
-      <div style={{ marginBottom: "1.25rem" }}>
-        <label style={labelStyle}>Imagens / Vídeos (máx. 5 URLs)</label>
-        {form.images.length < 5 && (
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
-            <input
-              style={{ ...inputStyle, flex: 1 }}
-              value={imageInput}
-              onChange={(e) => setImageInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addImage())}
-              placeholder="URL da imagem ou vídeo"
-            />
-            <button
-              onClick={addImage}
-              style={{
-                padding: "0.6rem 1rem",
-                backgroundColor: NAVY,
-                color: "#F5F3EE",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-              }}
-            >
-              Adicionar
-            </button>
-          </div>
-        )}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "0.5rem" }}>
-          {form.images.map((url, i) => (
-            <div
-              key={i}
-              style={{
-                position: "relative",
-                border: `2px solid ${i === form.coverIndex ? GOLD : "#E8E6E1"}`,
-                cursor: "pointer",
-              }}
-              onClick={() => set("coverIndex", i)}
-              title="Clique para definir como capa"
-            >
-              <img
-                src={url}
-                alt={`Imagem ${i + 1}`}
-                style={{ width: "100%", height: "80px", objectFit: "cover", display: "block" }}
-                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-              />
-              {i === form.coverIndex && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    backgroundColor: GOLD,
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.55rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: NAVY,
-                    textAlign: "center",
-                    padding: "0.15rem",
-                  }}
-                >
-                  Capa
-                </div>
-              )}
-              <button
-                onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                style={{
-                  position: "absolute",
-                  top: "0.25rem",
-                  right: "0.25rem",
-                  backgroundColor: "rgba(15,27,45,0.7)",
-                  border: "none",
-                  color: "#F5F3EE",
-                  width: "20px",
-                  height: "20px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                <X size={10} />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-        <button
-          onClick={onCancel}
-          style={{
-            padding: "0.6rem 1.25rem",
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: "1px solid #D8D6D1",
-            backgroundColor: "transparent",
-            color: "#2B2F36",
-            cursor: "pointer",
-          }}
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSave}
-          style={{
-            padding: "0.6rem 1.25rem",
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: "none",
-            backgroundColor: GOLD,
-            color: NAVY,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.4rem",
-          }}
-        >
-          <Save size={13} /> Salvar
-        </button>
-      </div>
+    <div>
+      <label style={labelCls}>{label}</label>
+      {children}
     </div>
   );
 }
 
-// ── Timeline Form ───────────────────────────────────────────────────────────
-function TimelineForm({
-  initial,
-  onSave,
-  onCancel,
-}: {
-  initial?: TimelineEntry;
-  onSave: (e: TimelineEntry) => void;
-  onCancel: () => void;
-}) {
-  const [form, setForm] = useState<Omit<TimelineEntry, "id" | "createdAt">>(
-    initial ? { date: initial.date, title: initial.title, description: initial.description, link: initial.link || "" }
-    : { ...EMPTY_TIMELINE }
-  );
+// ── Main component ─────────────────────────────────────────────────────────
 
-  const set = (key: keyof typeof form, val: string) =>
-    setForm((f) => ({ ...f, [key]: val }));
+type Tab = "projects" | "timeline" | "contact";
 
-  const handleSave = () => {
-    if (!form.date.trim() || !form.title.trim()) return;
-    const entry: TimelineEntry = {
-      id: initial?.id || generateId(),
-      createdAt: initial?.createdAt || new Date().toISOString(),
-      ...form,
-      link: form.link?.trim() || undefined,
-    };
-    onSave(entry);
-  };
-
-  return (
-    <div style={{ backgroundColor: "#fff", border: "1px solid #E8E6E1", padding: "1.5rem" }}>
-      <h3
-        style={{
-          fontFamily: "'Montserrat', sans-serif",
-          fontWeight: 700,
-          fontSize: "0.95rem",
-          color: NAVY,
-          marginBottom: "1.25rem",
-        }}
-      >
-        {initial ? "Editar entrada" : "Nova entrada"}
-      </h3>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "1rem", marginBottom: "1rem" }}>
-        <div>
-          <label style={labelStyle}>Data *</label>
-          <input
-            style={inputStyle}
-            value={form.date}
-            onChange={(e) => set("date", e.target.value)}
-            placeholder="Ex: 2024, Mar 2023"
-          />
-        </div>
-        <div>
-          <label style={labelStyle}>Título *</label>
-          <input
-            style={inputStyle}
-            value={form.title}
-            onChange={(e) => set("title", e.target.value)}
-            placeholder="Ex: Fundação da empresa"
-          />
-        </div>
-      </div>
-
-      <div style={{ marginBottom: "1rem" }}>
-        <label style={labelStyle}>Descrição</label>
-        <textarea
-          style={{ ...inputStyle, minHeight: "70px", resize: "vertical" }}
-          value={form.description}
-          onChange={(e) => set("description", e.target.value)}
-          placeholder="Descreva o marco histórico..."
-        />
-      </div>
-
-      <div style={{ marginBottom: "1.25rem" }}>
-        <label style={labelStyle}>Link (opcional — direciona para portfólio)</label>
-        <input
-          style={inputStyle}
-          value={form.link || ""}
-          onChange={(e) => set("link", e.target.value)}
-          placeholder="Ex: /pt/projetos"
-        />
-      </div>
-
-      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-        <button
-          onClick={onCancel}
-          style={{
-            padding: "0.6rem 1.25rem",
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: "1px solid #D8D6D1",
-            backgroundColor: "transparent",
-            color: "#2B2F36",
-            cursor: "pointer",
-          }}
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleSave}
-          style={{
-            padding: "0.6rem 1.25rem",
-            fontFamily: "'Montserrat', sans-serif",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            border: "none",
-            backgroundColor: GOLD,
-            color: NAVY,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: "0.4rem",
-          }}
-        >
-          <Save size={13} /> Salvar
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Main Admin Page ─────────────────────────────────────────────────────────
 export default function Admin() {
   const [, navigate] = useLocation();
   const [tab, setTab] = useState<Tab>("projects");
+  const [toast, setToast] = useState<string | null>(null);
 
-  // Projects state
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [editingProject, setEditingProject] = useState<Project | null | "new">(null);
-
-  // Timeline state
-  const [timeline, setTimeline] = useState<TimelineEntry[]>([]);
-  const [editingEntry, setEditingEntry] = useState<TimelineEntry | null | "new">(null);
-
-  useEffect(() => {
-    setProjects(projectStore.getAll());
-    setTimeline(timelineStore.getAll());
-  }, []);
-
-  // ── Project handlers ──
-  const saveProject = (p: Project) => {
-    projectStore.save(p);
-    setProjects(projectStore.getAll());
-    setEditingProject(null);
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2800);
   };
 
-  const deleteProject = (id: string) => {
+  return (
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#0A1420", color: "#F5F3EE" }}>
+      {/* Header */}
+      <header
+        style={{
+          borderBottom: "1px solid rgba(198,166,103,0.15)",
+          padding: "1rem 2rem",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          backgroundColor: "#0F1B2D",
+          flexWrap: "wrap",
+          gap: "0.75rem",
+        }}
+      >
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate("/pt")}
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(245,243,238,0.4)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: "0.7rem",
+              fontWeight: 600,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.4)")}
+          >
+            <ArrowLeft size={13} /> Site
+          </button>
+          <span style={{ color: "rgba(198,166,103,0.25)" }}>|</span>
+          <h1
+            style={{
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 800,
+              fontSize: "0.9rem",
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "#C6A667",
+            }}
+          >
+            Nova Habitar — Admin
+          </h1>
+        </div>
+
+        <div className="flex gap-1 flex-wrap">
+          {(["projects", "timeline", "contact"] as Tab[]).map((t) => {
+            const labels: Record<Tab, string> = { projects: "Projetos", timeline: "Linha do Tempo", contact: "Contato" };
+            const icons: Record<Tab, React.ReactNode> = {
+              projects: <FolderOpen size={13} />,
+              timeline: <Clock size={13} />,
+              contact: <Mail size={13} />,
+            };
+            return (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  padding: "0.5rem 1rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  border: "none",
+                  cursor: "pointer",
+                  backgroundColor: tab === t ? "rgba(198,166,103,0.12)" : "transparent",
+                  color: tab === t ? "#C6A667" : "rgba(245,243,238,0.4)",
+                  borderBottom: tab === t ? "2px solid #C6A667" : "2px solid transparent",
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {icons[t]} {labels[t]}
+              </button>
+            );
+          })}
+        </div>
+      </header>
+
+      <div className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto">
+        {tab === "projects" && <ProjectsTab showToast={showToast} />}
+        {tab === "timeline" && <TimelineTab showToast={showToast} />}
+        {tab === "contact" && <ContactTab showToast={showToast} />}
+      </div>
+
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            style={{
+              position: "fixed",
+              bottom: "2rem",
+              right: "2rem",
+              backgroundColor: "#C6A667",
+              color: "#0F1B2D",
+              fontFamily: "'Montserrat', sans-serif",
+              fontWeight: 700,
+              fontSize: "0.8rem",
+              letterSpacing: "0.06em",
+              padding: "0.75rem 1.25rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              zIndex: 999,
+            }}
+          >
+            <CheckCircle size={15} /> {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Projects Tab ───────────────────────────────────────────────────────────
+
+function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [editing, setEditing] = useState<Project | null>(null);
+  const [form, setForm] = useState<Omit<Project, "id" | "createdAt">>(EMPTY_PROJECT);
+  const [imageInput, setImageInput] = useState("");
+  const [tagInput, setTagInput] = useState("");
+
+  useEffect(() => { setProjects(projectStore.getAll()); }, []);
+
+  const openNew = () => {
+    setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_PROJECT });
+    setForm({ ...EMPTY_PROJECT });
+    setImageInput(""); setTagInput("");
+  };
+
+  const openEdit = (p: Project) => {
+    setEditing(p);
+    setForm({ ...p });
+    setImageInput(""); setTagInput("");
+  };
+
+  const handleSave = () => {
+    if (!editing) return;
+    const slug = form.slug || generateSlug(form.title);
+    const updated: Project = { ...editing, ...form, slug };
+    projectStore.save(updated);
+    setProjects(projectStore.getAll());
+    setEditing(null);
+    showToast("Projeto salvo!");
+  };
+
+  const handleDelete = (id: string) => {
     if (!confirm("Excluir este projeto?")) return;
     projectStore.delete(id);
     setProjects(projectStore.getAll());
+    showToast("Projeto excluído.");
   };
 
   const toggleFeatured = (p: Project) => {
@@ -555,502 +300,404 @@ export default function Admin() {
     setProjects(projectStore.getAll());
   };
 
-  // ── Timeline handlers ──
-  const saveEntry = (e: TimelineEntry) => {
-    timelineStore.save(e);
-    setTimeline(timelineStore.getAll());
-    setEditingEntry(null);
+  const addImage = () => {
+    if (!imageInput.trim() || form.images.length >= 5) return;
+    setForm((f) => ({ ...f, images: [...f.images, imageInput.trim()] }));
+    setImageInput("");
   };
 
-  const deleteEntry = (id: string) => {
-    if (!confirm("Excluir esta entrada?")) return;
-    timelineStore.delete(id);
-    setTimeline(timelineStore.getAll());
+  const removeImage = (i: number) => {
+    setForm((f) => ({
+      ...f,
+      images: f.images.filter((_, idx) => idx !== i),
+      coverIndex: f.coverIndex === i ? 0 : f.coverIndex > i ? f.coverIndex - 1 : f.coverIndex,
+    }));
   };
 
-  return (
-    <div style={{ backgroundColor: "#F5F3EE", minHeight: "100vh" }}>
-      {/* Top bar */}
-      <div
-        style={{
-          backgroundColor: NAVY,
-          padding: "1.5rem 0",
-          borderBottom: "1px solid rgba(198,166,103,0.15)",
-        }}
-      >
-        <div className="container mx-auto" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <button
-              onClick={() => navigate("/pt")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                letterSpacing: "0.06em",
-                color: "rgba(198,166,103,0.7)",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              <ArrowLeft size={14} />
-              Voltar ao site
-            </button>
-            <span style={{ color: "rgba(198,166,103,0.3)" }}>|</span>
-            <h1
-              style={{
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "1rem",
-                letterSpacing: "0.06em",
-                color: "#F5F3EE",
-              }}
-            >
-              Painel Administrativo
-            </h1>
+  const addTag = () => {
+    if (!tagInput.trim()) return;
+    setForm((f) => ({ ...f, techniques: [...f.techniques, tagInput.trim()] }));
+    setTagInput("");
+  };
+
+  if (editing) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+            {form.title || "Novo Projeto"}
+          </h2>
+          <div className="flex gap-2">
+            <button onClick={() => setEditing(null)} style={btnStyle("ghost")}><X size={14} /> Cancelar</button>
+            <button onClick={handleSave} style={btnStyle("gold")}><Save size={14} /> Salvar</button>
           </div>
-          <span
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.65rem",
-              fontWeight: 600,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: GOLD,
-            }}
-          >
-            Nova Habitar
-          </span>
         </div>
-      </div>
 
-      {/* Tab navigation */}
-      <div style={{ backgroundColor: "#fff", borderBottom: "1px solid #E8E6E1" }}>
-        <div className="container mx-auto" style={{ display: "flex", gap: 0 }}>
-          {([["projects", "Projetos", <Briefcase size={14} />], ["timeline", "Linha do Tempo", <Clock size={14} />]] as [Tab, string, React.ReactNode][]).map(([id, label, icon]) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <Field label="Título *">
+            <input style={inputCls} value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value, slug: generateSlug(e.target.value) })}
+              placeholder="Nome do empreendimento" />
+          </Field>
+          <Field label="Localidade *">
+            <input style={inputCls} value={form.location}
+              onChange={(e) => setForm({ ...form, location: e.target.value })}
+              placeholder="Cidade — Bairro" />
+          </Field>
+          <Field label="Status">
+            <select style={{ ...inputCls, cursor: "pointer" }} value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value as ProjectStatus })}>
+              {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                <option key={k} value={k} style={{ backgroundColor: "#0F1B2D" }}>{v}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Tipo">
+            <select style={{ ...inputCls, cursor: "pointer" }} value={form.type}
+              onChange={(e) => setForm({ ...form, type: e.target.value as ProjectType })}>
+              {Object.entries(TYPE_LABELS).map(([k, v]) => (
+                <option key={k} value={k} style={{ backgroundColor: "#0F1B2D" }}>{v}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Tipologia">
+            <input style={inputCls} value={form.typology}
+              onChange={(e) => setForm({ ...form, typology: e.target.value })}
+              placeholder="Ex: Apartamentos 2 e 3 quartos" />
+          </Field>
+          <Field label="Área construída">
+            <input style={inputCls} value={form.builtArea}
+              onChange={(e) => setForm({ ...form, builtArea: e.target.value })}
+              placeholder="Ex: 12.000 m²" />
+          </Field>
+          <Field label="Unidades">
+            <input style={inputCls} value={form.units}
+              onChange={(e) => setForm({ ...form, units: e.target.value })}
+              placeholder="Ex: 120 unidades" />
+          </Field>
+          <Field label="Destaque na página inicial">
             <button
-              key={id}
-              onClick={() => setTab(id)}
+              onClick={() => setForm({ ...form, featured: !form.featured })}
               style={{
-                padding: "1rem 1.5rem",
-                fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.75rem",
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                border: "none",
-                borderBottom: `2px solid ${tab === id ? GOLD : "transparent"}`,
-                backgroundColor: "transparent",
-                color: tab === id ? NAVY : "#888",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.4rem",
-                transition: "all 0.2s ease",
+                display: "flex", alignItems: "center", gap: "0.5rem",
+                background: "none",
+                border: `1px solid ${form.featured ? "#C6A667" : "rgba(198,166,103,0.2)"}`,
+                color: form.featured ? "#C6A667" : "rgba(245,243,238,0.4)",
+                padding: "0.5rem 1rem", cursor: "pointer",
+                fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem",
+                fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
               }}
             >
-              {icon} {label}
+              {form.featured ? <Star size={14} /> : <StarOff size={14} />}
+              {form.featured ? "Destaque ativo" : "Adicionar ao destaque"}
             </button>
-          ))}
-        </div>
-      </div>
+          </Field>
 
-      {/* Content */}
-      <div className="container mx-auto" style={{ padding: "2rem 0" }}>
-        {/* ── Projects Tab ── */}
-        {tab === "projects" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <h2
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  color: NAVY,
-                }}
-              >
-                Projetos ({projects.length})
-              </h2>
-              <button
-                onClick={() => setEditingProject("new")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  padding: "0.6rem 1.25rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  border: "none",
-                  backgroundColor: GOLD,
-                  color: NAVY,
-                  cursor: "pointer",
-                }}
-              >
-                <Plus size={14} /> Novo projeto
-              </button>
-            </div>
+          <div className="md:col-span-2">
+            <Field label="Descrição curta (cards e listagem)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                placeholder="Resumo para cards e listagem" />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Descrição completa (Sobre o projeto)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={4}
+                value={form.longDescription}
+                onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
+                placeholder="Texto detalhado para a página do projeto" />
+            </Field>
+          </div>
 
-            {/* Form */}
-            <AnimatePresence>
-              {editingProject && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  style={{ marginBottom: "1.5rem" }}
-                >
-                  <ProjectForm
-                    initial={editingProject === "new" ? undefined : editingProject}
-                    onSave={saveProject}
-                    onCancel={() => setEditingProject(null)}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Projects list */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {projects.map((p) => {
-                const cover = p.images[p.coverIndex] || p.images[0];
+          {/* Actuation */}
+          <div className="md:col-span-2">
+            <p style={{ ...labelCls, marginBottom: "0.75rem", color: "#C6A667" }}>Nossa Atuação</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(["planning", "architecture", "incorporation", "construction"] as const).map((key) => {
+                const labels: Record<string, string> = {
+                  planning: "Planejamento", architecture: "Arquitetura",
+                  incorporation: "Incorporação", construction: "Construção",
+                };
                 return (
-                  <div
-                    key={p.id}
-                    style={{
-                      backgroundColor: "#fff",
-                      border: "1px solid #E8E6E1",
-                      display: "flex",
-                      gap: "1rem",
-                      alignItems: "stretch",
-                    }}
-                  >
-                    {/* Thumbnail */}
-                    <div
-                      style={{
-                        width: "90px",
-                        flexShrink: 0,
-                        backgroundColor: "#E8E6E1",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {cover ? (
-                        <img
-                          src={cover}
-                          alt={p.title}
-                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                        />
-                      ) : (
-                        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <ImageIcon size={20} color="#bbb" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Info */}
-                    <div style={{ flex: 1, padding: "0.75rem 0" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                        <span
-                          style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontWeight: 700,
-                            fontSize: "0.875rem",
-                            color: NAVY,
-                          }}
-                        >
-                          {p.title}
-                        </span>
-                        {p.featured && <Star size={12} color={GOLD} fill={GOLD} />}
-                      </div>
-                      <div
-                        style={{
-                          fontFamily: "'Montserrat', sans-serif",
-                          fontSize: "0.75rem",
-                          color: "#888",
-                          marginBottom: "0.25rem",
-                        }}
-                      >
-                        {p.location}
-                      </div>
-                      <span
-                        style={{
-                          fontFamily: "'Montserrat', sans-serif",
-                          fontSize: "0.6rem",
-                          fontWeight: 700,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          color: GOLD,
-                          border: `1px solid rgba(198,166,103,0.3)`,
-                          padding: "0.15rem 0.5rem",
-                        }}
-                      >
-                        {STATUS_LABELS[p.status]}
-                      </span>
-                    </div>
-
-                    {/* Actions */}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        gap: "0.4rem",
-                        padding: "0.75rem",
-                        borderLeft: "1px solid #E8E6E1",
-                      }}
-                    >
-                      <button
-                        onClick={() => toggleFeatured(p)}
-                        title={p.featured ? "Remover destaque" : "Marcar como destaque"}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: p.featured ? GOLD : "#ccc",
-                          padding: "0.3rem",
-                        }}
-                      >
-                        {p.featured ? <Star size={15} fill={GOLD} /> : <StarOff size={15} />}
-                      </button>
-                      <button
-                        onClick={() => setEditingProject(p)}
-                        title="Editar"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: NAVY,
-                          padding: "0.3rem",
-                        }}
-                      >
-                        <Edit2 size={15} />
-                      </button>
-                      <button
-                        onClick={() => deleteProject(p.id)}
-                        title="Excluir"
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          color: "#e55",
-                          padding: "0.3rem",
-                        }}
-                      >
-                        <Trash2 size={15} />
-                      </button>
-                    </div>
-                  </div>
+                  <Field key={key} label={labels[key]}>
+                    <textarea style={{ ...inputCls, resize: "vertical" }} rows={3}
+                      value={form.actuation?.[key] ?? ""}
+                      onChange={(e) => setForm({ ...form, actuation: { ...form.actuation, [key]: e.target.value } })}
+                      placeholder={`Descrição de ${labels[key].toLowerCase()}`} />
+                  </Field>
                 );
               })}
-              {projects.length === 0 && (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "3rem",
-                    fontFamily: "'Montserrat', sans-serif",
-                    color: "#888",
-                    fontSize: "0.85rem",
-                    border: "1px dashed #D8D6D1",
-                  }}
-                >
-                  Nenhum projeto cadastrado. Clique em "Novo projeto" para começar.
-                </div>
-              )}
             </div>
           </div>
-        )}
 
-        {/* ── Timeline Tab ── */}
-        {tab === "timeline" && (
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-              <h2
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  color: NAVY,
-                }}
-              >
-                Linha do Tempo ({timeline.length})
-              </h2>
-              <button
-                onClick={() => setEditingEntry("new")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  padding: "0.6rem 1.25rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  border: "none",
-                  backgroundColor: GOLD,
-                  color: NAVY,
-                  cursor: "pointer",
-                }}
-              >
-                <Plus size={14} /> Nova entrada
+          {/* Images */}
+          <div className="md:col-span-2">
+            <Field label={`Imagens (até 5 URLs) — ${form.images.length}/5`}>
+              <div className="flex gap-2 mb-2">
+                <input style={{ ...inputCls, flex: 1 }} value={imageInput}
+                  onChange={(e) => setImageInput(e.target.value)}
+                  placeholder="https://... (URL da imagem)"
+                  onKeyDown={(e) => e.key === "Enter" && addImage()} />
+                <button onClick={addImage} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
+              </div>
+              {form.images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {form.images.map((img, i) => (
+                    <div key={i} style={{ position: "relative", border: `1.5px solid ${i === form.coverIndex ? "#C6A667" : "rgba(198,166,103,0.15)"}`, cursor: "pointer" }}
+                      title="Clique para definir como capa" onClick={() => setForm({ ...form, coverIndex: i })}>
+                      <img src={img} alt="" style={{ width: "72px", height: "52px", objectFit: "cover", display: "block" }}
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      {i === form.coverIndex && (
+                        <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#C6A667", color: "#0F1B2D", fontSize: "0.5rem", fontWeight: 700, textAlign: "center", letterSpacing: "0.1em", padding: "1px", fontFamily: "'Montserrat', sans-serif" }}>
+                          CAPA
+                        </span>
+                      )}
+                      <button onClick={(e) => { e.stopPropagation(); removeImage(i); }}
+                        style={{ position: "absolute", top: "2px", right: "2px", background: "rgba(15,27,45,0.8)", border: "none", color: "#F5F3EE", cursor: "pointer", padding: "1px", display: "flex" }}>
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Field>
+          </div>
+
+          {/* Tags */}
+          <div className="md:col-span-2">
+            <Field label="Diferenciais / Técnicas (tags)">
+              <div className="flex gap-2 mb-2">
+                <input style={{ ...inputCls, flex: 1 }} value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  placeholder="Ex: Laje protendida"
+                  onKeyDown={(e) => e.key === "Enter" && addTag()} />
+                <button onClick={addTag} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {form.techniques.map((tag, i) => (
+                  <span key={i} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.7rem", fontWeight: 600, color: "rgba(198,166,103,0.8)", border: "1px solid rgba(198,166,103,0.2)", padding: "0.2rem 0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    {tag}
+                    <button onClick={() => setForm({ ...form, techniques: form.techniques.filter((_, idx) => idx !== i) })}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(198,166,103,0.5)", padding: 0, display: "flex" }}>
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </Field>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+          Projetos ({projects.length})
+        </h2>
+        <button onClick={openNew} style={btnStyle("gold")}><Plus size={14} /> Novo projeto</button>
+      </div>
+
+      <div className="flex flex-col gap-3">
+        {projects.map((p) => (
+          <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", border: "1px solid rgba(198,166,103,0.12)", backgroundColor: "rgba(245,243,238,0.02)" }}>
+            <div style={{ width: "56px", height: "42px", flexShrink: 0, overflow: "hidden", border: "1px solid rgba(198,166,103,0.15)", backgroundColor: "rgba(245,243,238,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {p.images[p.coverIndex] ? (
+                <img src={p.images[p.coverIndex]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <ImageIcon size={16} style={{ color: "rgba(198,166,103,0.3)" }} />
+              )}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "0.875rem", color: "#F5F3EE", marginBottom: "0.2rem" }}>{p.title}</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: "rgba(245,243,238,0.4)" }}>{p.location}</span>
+                <span style={{ color: "rgba(198,166,103,0.2)" }}>·</span>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: "rgba(198,166,103,0.6)", textTransform: "uppercase" }}>{STATUS_LABELS[p.status]}</span>
+                <span style={{ color: "rgba(198,166,103,0.2)" }}>·</span>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 600, color: "rgba(245,243,238,0.35)", textTransform: "uppercase" }}>{TYPE_LABELS[p.type]}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => toggleFeatured(p)} title={p.featured ? "Remover destaque" : "Destacar na home"}
+                style={{ background: "none", border: "none", cursor: "pointer", color: p.featured ? "#C6A667" : "rgba(245,243,238,0.2)", padding: "0.25rem", display: "flex" }}>
+                <Star size={15} />
               </button>
+              <button onClick={() => openEdit(p)} style={btnStyle("ghost-sm")}><Pencil size={13} /></button>
+              <button onClick={() => handleDelete(p.id)} style={btnStyle("danger-sm")}><Trash2 size={13} /></button>
             </div>
+          </motion.div>
+        ))}
+        {projects.length === 0 && (
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.85rem", color: "rgba(245,243,238,0.3)", textAlign: "center", padding: "3rem" }}>
+            Nenhum projeto cadastrado.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
-            {/* Form */}
-            <AnimatePresence>
-              {editingEntry && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  style={{ marginBottom: "1.5rem" }}
-                >
-                  <TimelineForm
-                    initial={editingEntry === "new" ? undefined : editingEntry}
-                    onSave={saveEntry}
-                    onCancel={() => setEditingEntry(null)}
-                  />
-                </motion.div>
+// ── Timeline Tab ───────────────────────────────────────────────────────────
+
+function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
+  const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [editing, setEditing] = useState<TimelineEntry | null>(null);
+  const [form, setForm] = useState<Omit<TimelineEntry, "id" | "createdAt">>(EMPTY_TIMELINE);
+
+  useEffect(() => { setEntries(timelineStore.getAll()); }, []);
+
+  const openNew = () => {
+    setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_TIMELINE });
+    setForm({ ...EMPTY_TIMELINE });
+  };
+
+  const openEdit = (e: TimelineEntry) => {
+    setEditing(e);
+    setForm({ date: e.date, title: e.title, description: e.description, photo: e.photo ?? "", link: e.link ?? "" });
+  };
+
+  const handleSave = () => {
+    if (!editing) return;
+    timelineStore.save({ ...editing, ...form });
+    setEntries(timelineStore.getAll());
+    setEditing(null);
+    showToast("Entrada salva!");
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Excluir esta entrada?")) return;
+    timelineStore.delete(id);
+    setEntries(timelineStore.getAll());
+    showToast("Entrada excluída.");
+  };
+
+  if (editing) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+            {form.title || "Nova entrada"}
+          </h2>
+          <div className="flex gap-2">
+            <button onClick={() => setEditing(null)} style={btnStyle("ghost")}><X size={14} /> Cancelar</button>
+            <button onClick={handleSave} style={btnStyle("gold")}><Save size={14} /> Salvar</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+          <Field label="Data *">
+            <input style={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="Ex: 2024 ou Mar 2023" />
+          </Field>
+          <Field label="Título *">
+            <input style={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Título do marco" />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Descrição">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Descrição do evento" />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Foto (URL opcional)">
+              <input style={inputCls} value={form.photo ?? ""} onChange={(e) => setForm({ ...form, photo: e.target.value })} placeholder="https://... (URL da foto)" />
+              {form.photo && (
+                <img src={form.photo} alt="preview" style={{ marginTop: "0.5rem", height: "80px", objectFit: "cover", border: "1px solid rgba(198,166,103,0.2)" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               )}
-            </AnimatePresence>
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Link (opcional — direciona para página de projeto)">
+              <input style={inputCls} value={form.link ?? ""} onChange={(e) => setForm({ ...form, link: e.target.value })} placeholder="/pt/projetos/slug-do-projeto" />
+            </Field>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-            {/* Timeline list */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {timeline.map((entry) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    backgroundColor: "#fff",
-                    border: "1px solid #E8E6E1",
-                    display: "flex",
-                    gap: "1rem",
-                    alignItems: "stretch",
-                  }}
-                >
-                  {/* Date column */}
-                  <div
-                    style={{
-                      backgroundColor: NAVY,
-                      width: "80px",
-                      flexShrink: 0,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "1rem 0.5rem",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "0.75rem",
-                        letterSpacing: "0.06em",
-                        color: GOLD,
-                        textAlign: "center",
-                      }}
-                    >
-                      {entry.date}
-                    </span>
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ flex: 1, padding: "0.75rem 0" }}>
-                    <div
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "0.875rem",
-                        color: NAVY,
-                        marginBottom: "0.25rem",
-                      }}
-                    >
-                      {entry.title}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.775rem",
-                        lineHeight: 1.6,
-                        color: "#555",
-                      }}
-                    >
-                      {entry.description}
-                    </div>
-                    {entry.link && (
-                      <div
-                        style={{
-                          fontFamily: "'Montserrat', sans-serif",
-                          fontSize: "0.65rem",
-                          color: GOLD,
-                          marginTop: "0.25rem",
-                        }}
-                      >
-                        Link: {entry.link}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      gap: "0.4rem",
-                      padding: "0.75rem",
-                      borderLeft: "1px solid #E8E6E1",
-                    }}
-                  >
-                    <button
-                      onClick={() => setEditingEntry(entry)}
-                      title="Editar"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: NAVY,
-                        padding: "0.3rem",
-                      }}
-                    >
-                      <Edit2 size={15} />
-                    </button>
-                    <button
-                      onClick={() => deleteEntry(entry.id)}
-                      title="Excluir"
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "#e55",
-                        padding: "0.3rem",
-                      }}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-              {timeline.length === 0 && (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "3rem",
-                    fontFamily: "'Montserrat', sans-serif",
-                    color: "#888",
-                    fontSize: "0.85rem",
-                    border: "1px dashed #D8D6D1",
-                  }}
-                >
-                  Nenhuma entrada cadastrada. Clique em "Nova entrada" para começar.
-                </div>
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+          Linha do Tempo ({entries.length})
+        </h2>
+        <button onClick={openNew} style={btnStyle("gold")}><Plus size={14} /> Nova entrada</button>
+      </div>
+      <div className="flex flex-col gap-3">
+        {entries.map((e) => (
+          <div key={e.id} style={{ display: "flex", alignItems: "flex-start", gap: "1rem", padding: "1rem 1.25rem", border: "1px solid rgba(198,166,103,0.12)", backgroundColor: "rgba(245,243,238,0.02)" }}>
+            {e.photo && (
+              <img src={e.photo} alt="" style={{ width: "48px", height: "36px", objectFit: "cover", border: "1px solid rgba(198,166,103,0.15)", flexShrink: 0 }} />
+            )}
+            <div style={{ flex: 1 }}>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "0.75rem", color: "#C6A667" }}>{e.date}</span>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "0.875rem", color: "#F5F3EE" }}>{e.title}</span>
+              </div>
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.8rem", color: "rgba(245,243,238,0.4)", lineHeight: 1.5 }}>{e.description}</p>
+              {e.link && (
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.7rem", color: "rgba(198,166,103,0.6)", display: "flex", alignItems: "center", gap: "0.25rem", marginTop: "0.25rem" }}>
+                  <LinkIcon size={11} /> {e.link}
+                </span>
               )}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => openEdit(e)} style={btnStyle("ghost-sm")}><Pencil size={13} /></button>
+              <button onClick={() => handleDelete(e.id)} style={btnStyle("danger-sm")}><Trash2 size={13} /></button>
             </div>
           </div>
+        ))}
+        {entries.length === 0 && (
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.85rem", color: "rgba(245,243,238,0.3)", textAlign: "center", padding: "3rem" }}>
+            Nenhuma entrada cadastrada.
+          </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── Contact Tab ────────────────────────────────────────────────────────────
+
+function ContactTab({ showToast }: { showToast: (m: string) => void }) {
+  const [form, setForm] = useState<ContactInfo>(EMPTY_CONTACT);
+
+  useEffect(() => { setForm(contactStore.get()); }, []);
+
+  const handleSave = () => {
+    contactStore.save(form);
+    showToast("Informações de contato salvas!");
+  };
+
+  const fields: { key: keyof ContactInfo; label: string; placeholder: string; type?: string }[] = [
+    { key: "email", label: "E-mail", placeholder: "contato@novahabitar.com", type: "email" },
+    { key: "phone", label: "Telefone", placeholder: "+55 21 99999-0000" },
+    { key: "whatsapp", label: "WhatsApp (apenas números)", placeholder: "5521999990000" },
+    { key: "address", label: "Endereço / Localização", placeholder: "São Gonçalo, RJ — Brasil" },
+    { key: "instagram", label: "Instagram (URL)", placeholder: "https://instagram.com/novahabitar" },
+    { key: "linkedin", label: "LinkedIn (URL)", placeholder: "https://linkedin.com/company/novahabitar" },
+  ];
+
+  return (
+    <div className="max-w-xl">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+          Informações de Contato
+        </h2>
+        <button onClick={handleSave} style={btnStyle("gold")}><Save size={14} /> Salvar</button>
+      </div>
+      <div className="flex flex-col gap-4">
+        {fields.map(({ key, label, placeholder, type }) => (
+          <Field key={key} label={label}>
+            <input type={type ?? "text"} style={inputCls} value={form[key]}
+              onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+              placeholder={placeholder} />
+          </Field>
+        ))}
       </div>
     </div>
   );

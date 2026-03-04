@@ -22,11 +22,9 @@ import {
   Settings,
 } from "lucide-react";
 
-const LOGO_DARK =
-  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/CdFMmFddwYvgYETL.png?Expires=1804165690&Signature=cV49yLhvX-VzQthXEiyqjxknJOdktJRww9dPuGaPkTatBAoEsnT6oJ9se9dg9qZy~Jxt-cVENaLE9QSIdxo1qlLOxDLFnLH~zySFtoQpBMJOK~gLJDEPQ~jVYo~D2JA42wjFDjYIaXGnovRgXhWcqeq014kb1T-gQfkvF85ojHtjKO96-Hui9E5eofxvpD8PBlFl2aR-1RNIAxWMjPom7eut4Du3uPpE9m2P0ONoW8PGCSU8btcLm39Nm9b49Q1eNnECibg-DODDnJEFHzFCkxMlLCvvTYwXeUyjWTEgbYFCIX6cUXCYrFcLNp7g43H-rSPfNw1E0Vr6Yxxa~wveIw__&Key-Pair-Id=K2HSFNDJXOU9YS";
-
-// Monogram-only logo (NH symbol without text) — using same logo cropped via object-position
-const LOGO_MONO = LOGO_DARK;
+// Logo Solo fundo escuro monocromático — used in sidebar (collapsed: solo icon; expanded: full)
+const LOGO_SOLO =
+  "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/QbamnFCNndHCmpVS.png?Expires=1804180331&Signature=czJHa~GxkfsgzV32dORWqWegMJlzEx5sIywT3WOyXwumjYFQZhCpWhXvKZ1PUnWhcXGSRUd1OEoXuOqNnwcK85Ep11xPktDS2YJp10KGNbB7PkstpJCNbcYfnm7onQuHhkjx843VR1hAWq~OsXNJF5Jxl4Y-NAUTF5HFYREOjqKjUJ9BqJpRZFz~c1W6cavTg5NOR050QVLLX2WptMNnvwivbsXC9e2j-woAlOl75oZcSZlhQ~8sbzFvTpydTKWyUeZEjZqnVEO2QKA4KOopX3cP15TchNXRU6ylJpM1jRXHqAGceRpGonOPGLKY-7i5xD-WGM-4FpeKWv3I0sgvdg__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
 export default function Sidebar() {
   const [expanded, setExpanded] = useState(false);
@@ -47,7 +45,7 @@ export default function Sidebar() {
     { icon: <ShieldCheck size={18} />, label: t.nav.governance, action: () => scrollTo("governanca") },
     { icon: <Leaf size={18} />, label: t.nav.sustainability, action: () => scrollTo("sustentabilidade") },
     { icon: <Users size={18} />, label: t.nav.about, action: () => scrollTo("quem-somos") },
-    { icon: <Mail size={18} />, label: t.nav.contact, action: () => scrollTo("contato") },
+    { icon: <Mail size={18} />, label: t.nav.contact, action: () => navigate(`/${lang}/contato`) },
   ];
 
   const scrollTo = (hash: string) => {
@@ -103,40 +101,18 @@ export default function Sidebar() {
           }}
           onClick={() => navigate(`/${lang}`)}
         >
-          {isOpen ? (
-            <img
-              src={LOGO_DARK}
+          <img
+              src={LOGO_SOLO}
               alt="NOVA HABITAR"
               style={{
-                height: "64px",   /* 200% of original 32px */
+                height: isOpen ? "64px" : "44px",
                 width: "auto",
+                maxWidth: isOpen ? "160px" : "44px",
                 objectFit: "contain",
-                transition: "opacity 0.2s ease",
+                objectPosition: "left center",
+                transition: "all 0.25s ease",
               }}
             />
-          ) : (
-            <div
-              style={{
-                width: "40px",
-                height: "64px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                overflow: "hidden",
-              }}
-            >
-              <img
-                src={LOGO_MONO}
-                alt="NH"
-                style={{
-                  height: "56px",
-                  width: "56px",
-                  objectFit: "contain",
-                  objectPosition: "left center",
-                }}
-              />
-            </div>
-          )}
         </div>
 
         {/* Nav items */}

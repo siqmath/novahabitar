@@ -19,6 +19,8 @@ import { LangProvider } from "./contexts/LangContext";
 import Sidebar from "./components/Sidebar";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
+import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
 import { useEffect } from "react";
 
@@ -38,8 +40,12 @@ function Router() {
       {/* Language-prefixed routes */}
       <Route path="/pt" component={Home} />
       <Route path="/pt/projetos" component={Projects} />
+      <Route path="/pt/projetos/:slug" component={ProjectDetail} />
+      <Route path="/pt/contato" component={Contact} />
       <Route path="/en" component={Home} />
       <Route path="/en/projetos" component={Projects} />
+      <Route path="/en/projetos/:slug" component={ProjectDetail} />
+      <Route path="/en/contato" component={Contact} />
       {/* Admin — no sidebar */}
       <Route path="/admin" component={Admin} />
       <Route path="/404" component={NotFound} />
