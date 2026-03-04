@@ -188,7 +188,7 @@ export const translations = {
 
     // CTA
     cta: {
-      title: "Vamos estruturar o seu próximo empreendimento?",
+      title: "Vamos estruturar o seu próximo investimento?",
       subtitle:
         "Apresentamos cenários, riscos e possibilidades com base técnica e visão de mercado. Sem promessas — apenas estrutura e método.",
       button: "Agendar conversa técnica",
