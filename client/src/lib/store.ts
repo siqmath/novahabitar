@@ -18,15 +18,18 @@ export interface Project {
   slug: string;
   title: string;
   location: string;
-  description: string;
-  longDescription: string; // "Sobre o projeto"
-  techniques: string[]; // tags / diferenciais
-  images: string[]; // up to 5 URLs
+  description: string;        // short tagline shown in cards/carousel
+  shortDescription: string;   // one-liner shown in hero of detail page
+  aboutText: string;          // long "Sobre o projeto" text (multi-paragraph)
+  actuationIntro: string;     // intro paragraph for "Atuação da Nova Habitar" box
+  techniques: string[];       // tags shown in carousel card
+  differentials: string[];    // bullet list in "Diferenciais" section
+  images: string[];           // up to 5 URLs
   coverIndex: number;
   status: ProjectStatus;
   type: ProjectType;
   featured: boolean;
-  // Technical data
+  // Technical data (sidebar)
   typology: string;       // ex: "Salas comerciais de 30 a 150 m²"
   builtArea: string;      // ex: "12.000 m²"
   units: string;          // ex: "120 unidades"
@@ -72,8 +75,10 @@ const DEFAULT_PROJECTS: Project[] = [
     location: "São Gonçalo — Alcântara",
     description:
       "Empreendimento residencial entregue com alto padrão de acabamento e conformidade regulatória. Laje protendida, tratamento acústico e regularidade fundiária garantida.",
-    longDescription:
-      "O Residencial Jardim das Acácias representa o compromisso da Nova Habitar com a entrega de empreendimentos que combinam qualidade técnica, regularidade fundiária e padrão de acabamento superior. Desenvolvido em São Gonçalo, o projeto atende famílias que buscam qualidade de vida com segurança patrimonial.",
+    shortDescription: "Empreendimento entregue com alto padrão de acabamento e satisfação dos moradores.",
+    aboutText: "O Residencial Jardim das Acácias foi nosso primeiro empreendimento em Alcântara e consolidou a reputação da Nova Habitar na região.\n\nEntregue dentro do prazo e com acabamento superior ao especificado, o projeto recebeu elogios unânimes dos moradores.",
+    actuationIntro: "Na Nova Habitar, conduzimos este empreendimento integrando análise, projeto e execução para garantir solidez técnica e padrão de acabamento.",
+    differentials: ["Entrega antecipada em 2 meses", "Acabamento superior ao memorial descritivo", "Índice de satisfação de 98% dos moradores", "Valorização de 35% após entrega"],
     techniques: ["Laje protendida", "Tratamento acústico", "Regularidade fundiária"],
     images: [
       "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png",
@@ -100,8 +105,10 @@ const DEFAULT_PROJECTS: Project[] = [
     location: "Niterói — Centro",
     description:
       "Edifício comercial de alto padrão com infraestrutura corporativa completa e gestão integrada. Eficiência energética, automação predial e certificação PBQP-H.",
-    longDescription:
-      "O Edifício Corporativo Atlântico será um marco na arquitetura comercial de Niterói. Com salas de diversos tamanhos, o empreendimento atende desde profissionais liberais até empresas de médio porte. O projeto conta com infraestrutura de ponta, incluindo auditório, salas de reunião compartilhadas e estacionamento rotativo.",
+    shortDescription: "Empreendimento corporativo de alto padrão com infraestrutura completa em Niterói.",
+    aboutText: "O Edifício Corporativo Atlântico será um marco na arquitetura comercial de Niterói. Com salas de diversos tamanhos, o empreendimento atende desde profissionais liberais até empresas de médio porte.\n\nO projeto conta com infraestrutura de ponta, incluindo auditório, salas de reunião compartilhadas e estacionamento rotativo.",
+    actuationIntro: "Na Nova Habitar, conduzimos este empreendimento integrando análise de mercado, projeto arquitetônico e estruturação de incorporação para garantir viabilidade e padrão corporativo.",
+    differentials: ["Infraestrutura corporativa completa", "Eficiência energética certificada", "Automação predial integrada", "Localização estratégica no centro de Niterói"],
     techniques: ["Eficiência energética", "Automação predial", "Certificação PBQP-H"],
     images: [
       "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png",
@@ -128,8 +135,10 @@ const DEFAULT_PROJECTS: Project[] = [
     location: "São Gonçalo — Centro",
     description:
       "Residencial de médio e alto padrão com foco em eficiência de planta e valorização patrimonial. Planta eficiente, controle de custos e gestão por ERP.",
-    longDescription:
-      "O Residencial Mirante do Vale foi concebido para maximizar a eficiência de planta e a valorização patrimonial em uma das regiões de maior crescimento de São Gonçalo. O projeto integra soluções construtivas modernas com gestão por ERP para controle rigoroso de custos e prazos.",
+    shortDescription: "Residencial de alto padrão com foco em eficiência de planta e valorização patrimonial.",
+    aboutText: "O Residencial Mirante do Vale foi concebido para maximizar a eficiência de planta e a valorização patrimonial em uma das regiões de maior crescimento de São Gonçalo.\n\nO projeto integra soluções construtivas modernas com gestão por ERP para controle rigoroso de custos e prazos.",
+    actuationIntro: "Na Nova Habitar, conduzimos este empreendimento com foco em eficiência construtiva, controle de custos e entrega dentro do prazo estabelecido.",
+    differentials: ["Planta eficiente com aproveitamento máximo", "Gestão de obra por ERP integrado", "Controle rigoroso de custos e prazos", "Localização estratégica com alto potencial de valorização"],
     techniques: ["Planta eficiente", "Controle de custos", "Gestão por ERP"],
     images: [
       "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png",

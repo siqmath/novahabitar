@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, MapPin, Building2, Layers, Ruler, Hash,
-  ChevronLeft, ChevronRight, X, ExternalLink
+  ChevronLeft, ChevronRight, X, ExternalLink, CheckCircle2
 } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
 import { projectStore, STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN, type Project } from "@/lib/store";
@@ -288,7 +288,7 @@ export default function ProjectDetail() {
                   marginBottom: "1.5rem",
                 }}
               >
-                {project.longDescription || project.description}
+                {project.shortDescription || project.description}
               </p>
 
               {/* Technical data grid */}
@@ -426,8 +426,8 @@ export default function ProjectDetail() {
             </div>
           )}
 
-          {/* Techniques / Diferenciais */}
-          {project.techniques.length > 0 && (
+          {/* Sobre o projeto */}
+          {(project.aboutText || project.description) && (
             <div className="mb-14">
               <div className="flex items-center gap-3 mb-5">
                 <div style={{ width: "2rem", height: "1px", backgroundColor: "#C6A667" }} />
@@ -441,9 +441,71 @@ export default function ProjectDetail() {
                     color: "#C6A667",
                   }}
                 >
-                  {lang === "en" ? "Differentials" : "Diferenciais"}
+                  {lang === "en" ? "About the project" : "Sobre o projeto"}
                 </h2>
               </div>
+              {(project.aboutText || project.description).split("\n\n").map((para, i) => (
+                <p
+                  key={i}
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: "0.9rem",
+                    fontWeight: 300,
+                    lineHeight: 1.75,
+                    color: "rgba(245,243,238,0.65)",
+                    marginBottom: "0.85rem",
+                  }}
+                >
+                  {para}
+                </p>
+              ))}
+            </div>
+          )}
+
+          {/* Diferenciais */}
+          {project.differentials && project.differentials.length > 0 && (
+            <div className="mb-14">
+              <div className="flex items-center gap-3 mb-5">
+                <div style={{ width: "2rem", height: "1px", backgroundColor: "#C6A667" }} />
+                <h2
+                  style={{
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontWeight: 700,
+                    fontSize: "0.75rem",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    color: "#C6A667",
+                  }}
+                >
+                  {lang === "en" ? "Highlights" : "Diferenciais"}
+                </h2>
+              </div>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {project.differentials.map((item, i) => (
+                  <li
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.6rem",
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: "0.875rem",
+                      fontWeight: 300,
+                      color: "rgba(245,243,238,0.65)",
+                      lineHeight: 1.55,
+                    }}
+                  >
+                    <CheckCircle2 size={15} style={{ color: "#C6A667", flexShrink: 0, marginTop: "2px" }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Techniques tags */}
+          {project.techniques.length > 0 && (
+            <div className="mb-14">
               <div className="flex flex-wrap gap-2">
                 {project.techniques.map((tag, i) => (
                   <span

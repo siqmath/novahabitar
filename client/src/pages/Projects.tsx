@@ -156,6 +156,7 @@ export default function Projects() {
         }}
       >
         <div className="container mx-auto" style={{ padding: "1rem 0" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           <div
             style={{
               display: "flex",
@@ -249,39 +250,45 @@ export default function Projects() {
               ))}
             </select>
 
-            {/* Type filter — checkboxes */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "center" }}>
-              {types.map((tp) => (
-                <label
-                  key={tp.value}
+          </div>
+
+          {/* Type filter — second row checkboxes */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", paddingBottom: "0.25rem" }}>
+            <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888" }}>
+              {lang === "en" ? "Type:" : "Tipo:"}
+            </span>
+            {types.map((tp) => (
+              <label
+                key={tp.value}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  color: typeFilter.includes(tp.value) ? NAVY : "#777",
+                  cursor: "pointer",
+                  userSelect: "none",
+                  transition: "color 0.15s ease",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={typeFilter.includes(tp.value)}
+                  onChange={() => toggleType(tp.value)}
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.4rem",
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.75rem",
-                    fontWeight: 500,
-                    color: typeFilter.includes(tp.value) ? NAVY : "#555",
+                    accentColor: GOLD,
+                    width: "14px",
+                    height: "14px",
                     cursor: "pointer",
-                    userSelect: "none",
-                    transition: "color 0.15s ease",
                   }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={typeFilter.includes(tp.value)}
-                    onChange={() => toggleType(tp.value)}
-                    style={{
-                      accentColor: GOLD,
-                      width: "14px",
-                      height: "14px",
-                      cursor: "pointer",
-                    }}
-                  />
-                  {lang === "en" ? tp.labelEn : tp.labelPt}
-                </label>
-              ))}
-            </div>
+                />
+                {lang === "en" ? tp.labelEn : tp.labelPt}
+              </label>
+            ))}
+          </div>
+
           </div>
         </div>
       </div>

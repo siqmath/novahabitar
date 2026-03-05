@@ -27,7 +27,10 @@ const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
   title: "",
   location: "",
   description: "",
-  longDescription: "",
+  shortDescription: "",
+  aboutText: "",
+  actuationIntro: "",
+  differentials: [],
   techniques: [],
   images: [],
   coverIndex: 0,
@@ -402,11 +405,27 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
             </Field>
           </div>
           <div className="md:col-span-2">
-            <Field label="Descrição completa (Sobre o projeto)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={4}
-                value={form.longDescription}
-                onChange={(e) => setForm({ ...form, longDescription: e.target.value })}
-                placeholder="Texto detalhado para a página do projeto" />
+            <Field label="Subtítulo / Tagline (hero da página do projeto)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                value={form.shortDescription}
+                onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                placeholder="Uma frase de impacto para o hero da página do projeto" />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Sobre o projeto (texto longo — use linha em branco para separar parágrafos)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={5}
+                value={form.aboutText}
+                onChange={(e) => setForm({ ...form, aboutText: e.target.value })}
+                placeholder="Texto detalhado sobre o projeto. Separe parágrafos com linha em branco." />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Introdução da Atuação (texto antes dos 4 itens de atuação)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                value={form.actuationIntro}
+                onChange={(e) => setForm({ ...form, actuationIntro: e.target.value })}
+                placeholder="Ex: Na Nova Habitar, conduzimos este empreendimento integrando análise, projeto e execução..." />
             </Field>
           </div>
 
@@ -464,9 +483,43 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
             </Field>
           </div>
 
+          {/* Differentials (bullet list) */}
+          <div className="md:col-span-2">
+            <Field label="Diferenciais (lista de bullets na página do projeto)">
+              <div className="flex gap-2 mb-2">
+                <input style={{ ...inputCls, flex: 1 }} value={(form as any)._diffInput ?? ""}
+                  onChange={(e) => setForm({ ...form, ...(form as any), _diffInput: e.target.value } as any)}
+                  placeholder="Ex: Entrega antecipada em 2 meses"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = ((form as any)._diffInput ?? "").trim();
+                      if (val) {
+                        setForm({ ...form, differentials: [...(form.differentials ?? []), val], ...(form as any), _diffInput: "" } as any);
+                      }
+                    }
+                  }} />
+                <button onClick={() => {
+                  const val = ((form as any)._diffInput ?? "").trim();
+                  if (val) setForm({ ...form, differentials: [...(form.differentials ?? []), val], ...(form as any), _diffInput: "" } as any);
+                }} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
+              </div>
+              <div className="flex flex-col gap-1 mt-1">
+                {(form.differentials ?? []).map((item, i) => (
+                  <span key={i} style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem", fontWeight: 400, color: "rgba(198,166,103,0.8)", border: "1px solid rgba(198,166,103,0.15)", padding: "0.25rem 0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                    ✓ {item}
+                    <button onClick={() => setForm({ ...form, differentials: form.differentials.filter((_, idx) => idx !== i) })}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(198,166,103,0.5)", padding: 0, display: "flex", marginLeft: "auto" }}>
+                      <X size={10} />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            </Field>
+          </div>
+
           {/* Tags */}
           <div className="md:col-span-2">
-            <Field label="Diferenciais / Técnicas (tags)">
+            <Field label="Técnicas / Tags (exibidas na página do projeto)">
               <div className="flex gap-2 mb-2">
                 <input style={{ ...inputCls, flex: 1 }} value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}

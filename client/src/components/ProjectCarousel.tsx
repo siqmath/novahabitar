@@ -281,10 +281,12 @@ export default function ProjectCarousel() {
           {/* CTA + arrows */}
           <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
             <a
-              href={`/${lang}/projetos`}
+              href={`/${lang}/projetos/${projects[currentIndex]?.slug || ""}`}
               onClick={(e) => {
                 e.preventDefault();
-                navigate(`/${lang}/projetos`);
+                if (projects[currentIndex]?.slug) {
+                  navigate(`/${lang}/projetos/${projects[currentIndex].slug}`);
+                }
               }}
               className="nh-btn-gold"
             >
