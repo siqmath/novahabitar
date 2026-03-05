@@ -8,7 +8,6 @@
  */
 
 import { useLang } from "@/contexts/LangContext";
-import Sidebar from "@/components/Sidebar";
 import AnimatedHero from "@/components/AnimatedHero";
 import ProjectCarousel from "@/components/ProjectCarousel";
 import { FeatureSteps } from "@/components/FeatureSteps";
@@ -74,7 +73,6 @@ export default function Home() {
 
   return (
     <div style={{ backgroundColor: "#F5F3EE" }}>
-      <Sidebar />
       {/* ── HERO ── */}
       <AnimatedHero />
 
@@ -806,7 +804,7 @@ export default function Home() {
                   }}
                 >
                   <MapPin size={13} style={{ color: "#C6A667", flexShrink: 0, marginTop: "0.1rem" }} />
-                  Niterói, Rio de Janeiro
+                  São Gonçalo, Rio de Janeiro
                 </div>
                 <div
                   style={{
