@@ -804,7 +804,7 @@ export default function Home() {
                   }}
                 >
                   <MapPin size={13} style={{ color: "#C6A667", flexShrink: 0, marginTop: "0.1rem" }} />
-                  São Gonçalo, Rio de Janeiro
+                  Niterói, Rio de Janeiro
                 </div>
                 <div
                   style={{

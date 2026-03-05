@@ -1,12 +1,18 @@
 /**
  * Nova Habitar — App Entry
  * Routes:
- *   /           → redirect to /pt
- *   /pt         → Home (PT)
- *   /en         → Home (EN)
- *   /pt/projetos → Projects page (PT)
- *   /en/projetos → Projects page (EN)
- *   /admin       → Admin panel (no sidebar)
+ *   /              → redirect to /pt
+ *   /pt            → Home (PT)
+ *   /en            → Home (EN)
+ *   /pt/projetos   → Projects page (PT)
+ *   /en/projetos   → Projects page (EN)
+ *   /pt/projetos/:slug → Project detail (PT)
+ *   /en/projetos/:slug → Project detail (EN)
+ *   /pt/contato    → Contact (PT)
+ *   /en/contato    → Contact (EN)
+ *   /pt/historia   → Nossa História (PT)
+ *   /en/historia   → Our History (EN)
+ *   /admin         → Admin panel (password protected, no sidebar)
  */
 
 import { Toaster } from "@/components/ui/sonner";
@@ -17,10 +23,12 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LangProvider } from "./contexts/LangContext";
 import Sidebar from "./components/Sidebar";
+import AdminGuard from "./components/AdminGuard";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Contact from "./pages/Contact";
+import History from "./pages/History";
 import Admin from "./pages/Admin";
 import { useEffect } from "react";
 
@@ -37,17 +45,26 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={RootRedirect} />
-      {/* Language-prefixed routes */}
+      {/* PT routes */}
       <Route path="/pt" component={Home} />
       <Route path="/pt/projetos" component={Projects} />
       <Route path="/pt/projetos/:slug" component={ProjectDetail} />
       <Route path="/pt/contato" component={Contact} />
+      <Route path="/pt/historia" component={History} />
+      {/* EN routes */}
       <Route path="/en" component={Home} />
       <Route path="/en/projetos" component={Projects} />
       <Route path="/en/projetos/:slug" component={ProjectDetail} />
       <Route path="/en/contato" component={Contact} />
-      {/* Admin — no sidebar */}
-      <Route path="/admin" component={Admin} />
+      <Route path="/en/historia" component={History} />
+      {/* Admin — password protected, no sidebar */}
+      <Route path="/admin">
+        {() => (
+          <AdminGuard>
+            <Admin />
+          </AdminGuard>
+        )}
+      </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -207,7 +207,7 @@ const DEFAULT_CONTACT: ContactInfo = {
   email: "contato@novahabitar.com",
   phone: "+55 21 99999-0000",
   whatsapp: "+5521999990000",
-  address: "São Gonçalo, RJ — Brasil",
+  address: "Niterói, RJ — Brasil",
   instagram: "https://instagram.com/novahabitar",
   linkedin: "https://linkedin.com/company/novahabitar",
 };

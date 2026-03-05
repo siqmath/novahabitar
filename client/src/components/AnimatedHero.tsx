@@ -19,7 +19,7 @@ const LOGO_ICON =
   "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/LnpeZzuhwUyRuTcN.png?Expires=1804180331&Signature=mFjQOcyHBR58Blw-yQ1kFH33DKgd3lJmkZ0cp1425z9-97fxlcXJC9jmsrIIL3NJGV0jFL3VDckXRyc7QVtdcSGUDyeGwTCABj1uob7UzY2h9uPPysUrzMrOdRiP5C8f1t59wK6bxQaMrVv32C0NJhIZi89-NmR10HOo-OydzClKYS8WhCSrxN58DIaZO6hbNROPyHcsUXuNi3sUFf4Z5fRCGlhWXQqpoKQqz7Y3nQxv7mfnZxMfmQ034vQK5QwuxyNG8iueP8224twf8IjUvaUNzkdyEj3UjbaP0IzdlN7jsu7ua5KpgNL0ul73Va7UDG1XZzkcSAuxfLtkFDMYBA__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
 export default function AnimatedHero() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [wordIndex, setWordIndex] = useState(0);
   const words = useMemo(() => t.hero.words, [t.hero.words]);
 
@@ -180,21 +180,13 @@ export default function AnimatedHero() {
             }}
           >
             <a
-              href="#projetos"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("projetos")?.scrollIntoView({ behavior: "smooth" });
-              }}
+              href={`/${lang}/contato`}
               className="nh-btn-gold"
             >
               {t.hero.cta1} <ArrowRight size={14} />
             </a>
             <a
-              href="#contato"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
-              }}
+              href={`/${lang}/projetos`}
               className="nh-btn-outline-light"
             >
               {t.hero.cta2}

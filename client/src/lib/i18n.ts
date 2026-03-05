@@ -22,15 +22,15 @@ export const translations = {
 
     // HERO
     hero: {
-      prefix: "Consultoria para transformar",
-      prefix2: "projetos em ativos imobiliários",
-      words: ["sólidos", "previsíveis", "lucrativos"],
+      prefix: "Consolidando grandes projetos",
+      prefix2: "em ativos imobiliários",
+      words: ["de alto valor", "sólidos", "previsíveis"],
       subtitle:
-        "Integramos planejamento, arquitetura, incorporação e execução com rigor técnico e governança em cada etapa do empreendimento.",
+        "Uma plataforma de desenvolvimento imobiliário",
       cta1: "Ver portfólio",
       cta2: "Agendar conversa técnica",
       badge1: "Desde 2012",
-      badge2: "São Gonçalo, RJ",
+      badge2: "Niterói, RJ",
       badge3: "Atuação integrada",
     },
 
@@ -222,15 +222,15 @@ export const translations = {
     langSwitch: "PT",
 
     hero: {
-      prefix: "Consulting to transform projects",
+      prefix: "Consolidating major projects",
       prefix2: "into real estate assets",
-      words: ["solid", "predictable", "profitable"],
+      words: ["of high value", "solid", "predictable"],
       subtitle:
-        "We integrate planning, architecture, development and construction with technical rigor and governance at every stage of the project.",
+        "A real estate development platform",
       cta1: "View portfolio",
       cta2: "Schedule a meeting",
       badge1: "Since 2012",
-      badge2: "São Gonçalo, RJ",
+      badge2: "Niterói, RJ",
       badge3: "Integrated operations",
     },
 

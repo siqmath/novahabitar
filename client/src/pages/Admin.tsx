@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
+import FileUpload from "@/components/FileUpload";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, Save, X, Star, StarOff,
@@ -264,7 +265,6 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [editing, setEditing] = useState<Project | null>(null);
   const [form, setForm] = useState<Omit<Project, "id" | "createdAt">>(EMPTY_PROJECT);
-  const [imageInput, setImageInput] = useState("");
   const [tagInput, setTagInput] = useState("");
 
   useEffect(() => { setProjects(projectStore.getAll()); }, []);
@@ -272,13 +272,13 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
   const openNew = () => {
     setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_PROJECT });
     setForm({ ...EMPTY_PROJECT });
-    setImageInput(""); setTagInput("");
+    setTagInput("");
   };
 
   const openEdit = (p: Project) => {
     setEditing(p);
     setForm({ ...p });
-    setImageInput(""); setTagInput("");
+    setTagInput("");
   };
 
   const handleSave = () => {
@@ -301,20 +301,6 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
   const toggleFeatured = (p: Project) => {
     projectStore.save({ ...p, featured: !p.featured });
     setProjects(projectStore.getAll());
-  };
-
-  const addImage = () => {
-    if (!imageInput.trim() || form.images.length >= 5) return;
-    setForm((f) => ({ ...f, images: [...f.images, imageInput.trim()] }));
-    setImageInput("");
-  };
-
-  const removeImage = (i: number) => {
-    setForm((f) => ({
-      ...f,
-      images: f.images.filter((_, idx) => idx !== i),
-      coverIndex: f.coverIndex === i ? 0 : f.coverIndex > i ? f.coverIndex - 1 : f.coverIndex,
-    }));
   };
 
   const addTag = () => {
@@ -450,36 +436,52 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
             </div>
           </div>
 
-          {/* Images */}
+          {/* Images / Videos — Upload */}
           <div className="md:col-span-2">
-            <Field label={`Imagens (até 5 URLs) — ${form.images.length}/5`}>
-              <div className="flex gap-2 mb-2">
-                <input style={{ ...inputCls, flex: 1 }} value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  placeholder="https://... (URL da imagem)"
-                  onKeyDown={(e) => e.key === "Enter" && addImage()} />
-                <button onClick={addImage} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
+            <Field label={`Mídia do Projeto (até 5 imagens ou vídeos) — ${form.images.length}/5 | Clique na miniatura para definir como capa`}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "0.5rem" }}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} style={{ position: "relative" }}>
+                    {/* Cover badge */}
+                    {form.images[i] && (
+                      <div
+                        onClick={() => setForm({ ...form, coverIndex: i })}
+                        style={{
+                          position: "absolute", top: 0, left: 0, right: 0,
+                          height: "4px",
+                          backgroundColor: i === form.coverIndex ? "#C6A667" : "transparent",
+                          cursor: "pointer",
+                          zIndex: 2,
+                          transition: "background-color 0.15s ease",
+                        }}
+                        title="Clique para definir como capa"
+                      />
+                    )}
+                    <FileUpload
+                      value={form.images[i] || ""}
+                      onChange={(url) => {
+                        const newImages = [...form.images];
+                        if (url) {
+                          newImages[i] = url;
+                        } else {
+                          newImages.splice(i, 1);
+                        }
+                        setForm({
+                          ...form,
+                          images: newImages.filter(Boolean),
+                          coverIndex: Math.min(form.coverIndex, Math.max(0, newImages.filter(Boolean).length - 1)),
+                        });
+                      }}
+                      accept="both"
+                      compact
+                      label={`Mídia ${i + 1}`}
+                    />
+                    {form.images[i] && i === form.coverIndex && (
+                      <div style={{ textAlign: "center", fontFamily: "'Montserrat', sans-serif", fontSize: "0.55rem", fontWeight: 700, letterSpacing: "0.1em", color: "#C6A667", marginTop: "0.2rem" }}>CAPA</div>
+                    )}
+                  </div>
+                ))}
               </div>
-              {form.images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.images.map((img, i) => (
-                    <div key={i} style={{ position: "relative", border: `1.5px solid ${i === form.coverIndex ? "#C6A667" : "rgba(198,166,103,0.15)"}`, cursor: "pointer" }}
-                      title="Clique para definir como capa" onClick={() => setForm({ ...form, coverIndex: i })}>
-                      <img src={img} alt="" style={{ width: "72px", height: "52px", objectFit: "cover", display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      {i === form.coverIndex && (
-                        <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#C6A667", color: "#0F1B2D", fontSize: "0.5rem", fontWeight: 700, textAlign: "center", letterSpacing: "0.1em", padding: "1px", fontFamily: "'Montserrat', sans-serif" }}>
-                          CAPA
-                        </span>
-                      )}
-                      <button onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                        style={{ position: "absolute", top: "2px", right: "2px", background: "rgba(15,27,45,0.8)", border: "none", color: "#F5F3EE", cursor: "pointer", padding: "1px", display: "flex" }}>
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </Field>
           </div>
 
@@ -654,12 +656,13 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
             </Field>
           </div>
           <div className="md:col-span-2">
-            <Field label="Foto (URL opcional)">
-              <input style={inputCls} value={form.photo ?? ""} onChange={(e) => setForm({ ...form, photo: e.target.value })} placeholder="https://... (URL da foto)" />
-              {form.photo && (
-                <img src={form.photo} alt="preview" style={{ marginTop: "0.5rem", height: "80px", objectFit: "cover", border: "1px solid rgba(198,166,103,0.2)" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
+            <Field label="Foto (opcional)">
+              <FileUpload
+                value={form.photo ?? ""}
+                onChange={(url) => setForm({ ...form, photo: url || undefined })}
+                accept="image"
+                label="Foto do marco"
+              />
             </Field>
           </div>
           <div className="md:col-span-2">
@@ -730,7 +733,7 @@ function ContactTab({ showToast }: { showToast: (m: string) => void }) {
     { key: "email", label: "E-mail", placeholder: "contato@novahabitar.com", type: "email" },
     { key: "phone", label: "Telefone", placeholder: "+55 21 99999-0000" },
     { key: "whatsapp", label: "WhatsApp (apenas números)", placeholder: "5521999990000" },
-    { key: "address", label: "Endereço / Localização", placeholder: "São Gonçalo, RJ — Brasil" },
+    { key: "address", label: "Endereço / Localização", placeholder: "Niterói, RJ — Brasil" },
     { key: "instagram", label: "Instagram (URL)", placeholder: "https://instagram.com/novahabitar" },
     { key: "linkedin", label: "LinkedIn (URL)", placeholder: "https://linkedin.com/company/novahabitar" },
   ];
