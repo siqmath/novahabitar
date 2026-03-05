@@ -1,11 +1,10 @@
 /**
  * FileUpload — Drag & drop / click to upload images and videos
- * Uploads to S3 via tRPC upload.file mutation
+ * Uploads to /api/upload (REST multipart endpoint)
  * Returns CDN URL on success
  */
 
 import { useState, useRef, useCallback } from "react";
-import { trpc } from "@/lib/trpc";
 import { Upload, X, Film, Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface FileUploadProps {
@@ -33,17 +32,8 @@ export default function FileUpload({
 }: FileUploadProps) {
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const uploadMutation = trpc.upload.file.useMutation({
-    onSuccess: (data) => {
-      onChange(data.url);
-      setError(null);
-    },
-    onError: (err) => {
-      setError(`Erro ao enviar: ${err.message}`);
-    },
-  });
 
   const processFile = useCallback(
     async (file: File) => {
@@ -62,19 +52,32 @@ export default function FileUpload({
       if (accept === "video" && !isVideo) { setError("Apenas vídeos são aceitos."); return; }
       if (accept === "both" && !isImage && !isVideo) { setError("Formato não suportado."); return; }
 
-      // Read as base64
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = (reader.result as string).split(",")[1];
-        uploadMutation.mutate({
-          base64,
-          mimeType: file.type,
-          fileName: file.name,
+      setUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          credentials: "include",
+          body: formData,
         });
-      };
-      reader.readAsDataURL(file);
+
+        if (!response.ok) {
+          const data = await response.json().catch(() => ({ error: response.statusText }));
+          throw new Error(data.error || `Erro ${response.status}`);
+        }
+
+        const data = await response.json();
+        onChange(data.url);
+        setError(null);
+      } catch (err: any) {
+        setError(`Erro ao enviar: ${err.message}`);
+      } finally {
+        setUploading(false);
+      }
     },
-    [accept, uploadMutation]
+    [accept, onChange]
   );
 
   const handleDrop = useCallback(
@@ -94,7 +97,6 @@ export default function FileUpload({
   };
 
   const isVideo = value && (value.includes(".mp4") || value.includes(".webm") || value.includes("video"));
-  const isUploading = uploadMutation.isPending;
 
   const height = compact ? "80px" : "160px";
 
@@ -162,7 +164,7 @@ export default function FileUpload({
         </div>
       ) : (
         <div
-          onClick={() => !isUploading && inputRef.current?.click()}
+          onClick={() => !uploading && inputRef.current?.click()}
           onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
           onDragLeave={() => setDragging(false)}
           onDrop={handleDrop}
@@ -176,11 +178,11 @@ export default function FileUpload({
             alignItems: "center",
             justifyContent: "center",
             gap: "0.5rem",
-            cursor: isUploading ? "wait" : "pointer",
+            cursor: uploading ? "wait" : "pointer",
             transition: "all 0.15s ease",
           }}
         >
-          {isUploading ? (
+          {uploading ? (
             <>
               <Loader2 size={20} style={{ color: "#C6A667", animation: "spin 1s linear infinite" }} />
               <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.7rem", color: "rgba(245,243,238,0.4)" }}>

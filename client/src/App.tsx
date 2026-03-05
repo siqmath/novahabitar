@@ -1,35 +1,15 @@
-/**
- * Nova Habitar — App Entry
- * Routes:
- *   /              → redirect to /pt
- *   /pt            → Home (PT)
- *   /en            → Home (EN)
- *   /pt/projetos   → Projects page (PT)
- *   /en/projetos   → Projects page (EN)
- *   /pt/projetos/:slug → Project detail (PT)
- *   /en/projetos/:slug → Project detail (EN)
- *   /pt/contato    → Contact (PT)
- *   /en/contato    → Contact (EN)
- *   /pt/historia   → Nossa História (PT)
- *   /en/historia   → Our History (EN)
- *   /admin         → Admin panel (password protected, no sidebar)
- */
-
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { LangProvider } from "@/contexts/LangContext";
 import { Route, Switch, useLocation } from "wouter";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { LangProvider } from "./contexts/LangContext";
-import Sidebar from "./components/Sidebar";
+import Contact from "./pages/Contact";
+import NotFound from "./pages/NotFound";
 import AdminGuard from "./components/AdminGuard";
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
-import Contact from "./pages/Contact";
-import History from "./pages/History";
 import Admin from "./pages/Admin";
+import History from "./pages/History";
+import UploadTest from "./pages/UploadTest";
 import { useEffect } from "react";
 
 // Redirect root to /pt
@@ -65,43 +45,20 @@ function Router() {
           </AdminGuard>
         )}
       </Route>
-      <Route path="/404" component={NotFound} />
+      {/* Test route */}
+      <Route path="/upload-test" component={UploadTest} />
+      {/* 404 */}
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-function AppLayout() {
-  const [location] = useLocation();
-  const isAdmin = location.startsWith("/admin");
-
-  if (isAdmin) {
-    return <Router />;
-  }
-
+export default function App() {
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <Sidebar />
-      <main className="nh-main" style={{ flex: 1, minWidth: 0 }}>
+    <ThemeProvider defaultTheme="dark" storageKey="nova-habitar-theme">
+      <LangProvider>
         <Router />
-      </main>
-    </div>
+      </LangProvider>
+    </ThemeProvider>
   );
 }
-
-function App() {
-  return (
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="light">
-        <LangProvider>
-          <TooltipProvider>
-            <Toaster />
-            <AppLayout />
-          </TooltipProvider>
-        </LangProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
-  );
-}
-
-export default App;

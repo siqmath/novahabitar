@@ -8,6 +8,7 @@
  */
 
 import { useLang } from "@/contexts/LangContext";
+import Sidebar from "@/components/Sidebar";
 import AnimatedHero from "@/components/AnimatedHero";
 import ProjectCarousel from "@/components/ProjectCarousel";
 import { FeatureSteps } from "@/components/FeatureSteps";
@@ -73,6 +74,7 @@ export default function Home() {
 
   return (
     <div style={{ backgroundColor: "#F5F3EE" }}>
+      <Sidebar />
       {/* ── HERO ── */}
       <AnimatedHero />
 

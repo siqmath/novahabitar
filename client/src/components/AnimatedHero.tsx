@@ -180,13 +180,13 @@ export default function AnimatedHero() {
             }}
           >
             <a
-              href={`/${lang}/contato`}
+              href={`/${lang}/projetos`}
               className="nh-btn-gold"
             >
               {t.hero.cta1} <ArrowRight size={14} />
             </a>
             <a
-              href={`/${lang}/projetos`}
+              href={`/${lang}/contato`}
               className="nh-btn-outline-light"
             >
               {t.hero.cta2}

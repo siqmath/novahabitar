@@ -406,36 +406,6 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
                 placeholder="Texto detalhado sobre o projeto. Separe parágrafos com linha em branco." />
             </Field>
           </div>
-          <div className="md:col-span-2">
-            <Field label="Introdução da Atuação (texto antes dos 4 itens de atuação)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
-                value={form.actuationIntro}
-                onChange={(e) => setForm({ ...form, actuationIntro: e.target.value })}
-                placeholder="Ex: Na Nova Habitar, conduzimos este empreendimento integrando análise, projeto e execução..." />
-            </Field>
-          </div>
-
-          {/* Actuation */}
-          <div className="md:col-span-2">
-            <p style={{ ...labelCls, marginBottom: "0.75rem", color: "#C6A667" }}>Nossa Atuação</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(["planning", "architecture", "incorporation", "construction"] as const).map((key) => {
-                const labels: Record<string, string> = {
-                  planning: "Planejamento", architecture: "Arquitetura",
-                  incorporation: "Incorporação", construction: "Construção",
-                };
-                return (
-                  <Field key={key} label={labels[key]}>
-                    <textarea style={{ ...inputCls, resize: "vertical" }} rows={3}
-                      value={form.actuation?.[key] ?? ""}
-                      onChange={(e) => setForm({ ...form, actuation: { ...form.actuation, [key]: e.target.value } })}
-                      placeholder={`Descrição de ${labels[key].toLowerCase()}`} />
-                  </Field>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Images / Videos — Upload */}
           <div className="md:col-span-2">
             <Field label={`Mídia do Projeto (até 5 imagens ou vídeos) — ${form.images.length}/5 | Clique na miniatura para definir como capa`}>

@@ -45,3 +45,11 @@
 - [x] Vitest tests pass (13 tests across 2 test files)
 - [x] Auth logout test
 - [x] Upload route and store utility tests
+
+## Known Issues (Being Fixed)
+
+- [x] Image/video upload fixed — replaced tRPC with REST endpoint /api/upload (multer + S3)
+- [x] Language selector buttons (🇧🇷 🇺🇸) added to top of sidebar, selected flag 3x larger
+- [x] CTA buttons fixed: VER PORTFÓLIO → /projetos, AGENDAR CONVERSA TÉCNICA → /contato
+- [x] Nossa História page linked in sidebar navigation (/pt/historia, /en/historia)
+- [x] "Introdução da Atuação" and "Nossa Atuação" fields removed from admin panel project form

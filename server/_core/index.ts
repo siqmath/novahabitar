@@ -8,6 +8,7 @@ import { registerChatRoutes } from "./chat";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { registerUploadRoute } from "../uploadRoute";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,6 +37,8 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
+  // File upload REST endpoint
+  registerUploadRoute(app);
   // Chat API with streaming and tool calling
   registerChatRoutes(app);
   // tRPC API

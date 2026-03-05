@@ -1,8 +1,8 @@
 /**
  * Nova Habitar — Sidebar Navigation
- * Left expandable sidebar with logo, nav links, flag language toggle
+ * Left expandable sidebar with logo, flag language toggle at top, nav links
  * Design: Navy #0F1B2D, Gold #C6A667 accents, Montserrat typography
- * Language: Flag buttons PT (🇧🇷) / EN (🇺🇸) — selected flag is 3x larger
+ * Language: Flag buttons PT (🇧🇷) / EN (🇺🇸) — selected flag is 3x larger, at top of sidebar
  */
 
 import { useState, useEffect } from "react";
@@ -123,6 +123,69 @@ export default function Sidebar() {
           />
         </div>
 
+        {/* ── Language flags — TOP of sidebar, below logo ── */}
+        <div
+          className="w-full px-3 py-3 flex items-center gap-2"
+          style={{ borderBottom: "1px solid rgba(198,166,103,0.08)" }}
+        >
+          {/* Brazil flag — PT */}
+          <button
+            onClick={() => setLang("pt")}
+            title="Português"
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              lineHeight: 1,
+              transition: "all 0.2s ease",
+              fontSize: lang === "pt" ? "1.75rem" : "0.75rem",
+              opacity: lang === "pt" ? 1 : 0.4,
+              filter: lang === "pt" ? "none" : "grayscale(0.4)",
+              flexShrink: 0,
+            }}
+          >
+            🇧🇷
+          </button>
+
+          {/* US flag — EN */}
+          <button
+            onClick={() => setLang("en")}
+            title="English"
+            style={{
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+              lineHeight: 1,
+              transition: "all 0.2s ease",
+              fontSize: lang === "en" ? "1.75rem" : "0.75rem",
+              opacity: lang === "en" ? 1 : 0.4,
+              filter: lang === "en" ? "none" : "grayscale(0.4)",
+              flexShrink: 0,
+            }}
+          >
+            🇺🇸
+          </button>
+
+          {/* Label when expanded */}
+          {isOpen && (
+            <span
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontSize: "0.65rem",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "rgba(245,243,238,0.35)",
+                marginLeft: "0.25rem",
+              }}
+            >
+              {lang === "pt" ? "Português" : "English"}
+            </span>
+          )}
+        </div>
+
         {/* Nav items */}
         <nav className="flex flex-col w-full flex-1 py-4 gap-0.5 overflow-hidden">
           {navItems.map((item, idx) => {
@@ -173,73 +236,12 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom: Flag language toggle */}
-        <div
-          className="w-full px-4 py-4 flex flex-col gap-3"
-          style={{ borderTop: "1px solid rgba(198,166,103,0.12)" }}
-        >
-          {/* Flag buttons — selected is 3x larger */}
+        {/* Bottom: expand hint */}
+        {!isOpen && (
           <div
-            className="flex items-center gap-3"
-            style={{ padding: "0.25rem 0" }}
+            className="w-full px-4 py-4"
+            style={{ borderTop: "1px solid rgba(198,166,103,0.08)" }}
           >
-            {/* Brazil flag — PT */}
-            <button
-              onClick={() => setLang("pt")}
-              title="Português"
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                lineHeight: 1,
-                transition: "all 0.2s ease",
-                fontSize: lang === "pt" ? "2rem" : "0.85rem",
-                opacity: lang === "pt" ? 1 : 0.45,
-                filter: lang === "pt" ? "none" : "grayscale(0.3)",
-              }}
-            >
-              🇧🇷
-            </button>
-
-            {/* US flag — EN */}
-            <button
-              onClick={() => setLang("en")}
-              title="English"
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                lineHeight: 1,
-                transition: "all 0.2s ease",
-                fontSize: lang === "en" ? "2rem" : "0.85rem",
-                opacity: lang === "en" ? 1 : 0.45,
-                filter: lang === "en" ? "none" : "grayscale(0.3)",
-              }}
-            >
-              🇺🇸
-            </button>
-
-            {/* Label when expanded */}
-            {isOpen && (
-              <span
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.7rem",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "rgba(245,243,238,0.4)",
-                }}
-              >
-                {lang === "pt" ? "Português" : "English"}
-              </span>
-            )}
-          </div>
-
-          {/* Expand hint (only when collapsed on desktop) */}
-          {!isOpen && (
             <div
               style={{
                 display: "flex",
@@ -249,8 +251,8 @@ export default function Sidebar() {
             >
               <ChevronRight size={14} />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
     </>
   );
