@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from "react";
+import FileUpload from "@/components/FileUpload";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, Save, X, Star, StarOff,
@@ -420,67 +421,32 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
                 placeholder="Texto detalhado sobre o projeto. Separe parágrafos com linha em branco." />
             </Field>
           </div>
-          <div className="md:col-span-2">
-            <Field label="Introdução da Atuação (texto antes dos 4 itens de atuação)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
-                value={form.actuationIntro}
-                onChange={(e) => setForm({ ...form, actuationIntro: e.target.value })}
-                placeholder="Ex: Na Nova Habitar, conduzimos este empreendimento integrando análise, projeto e execução..." />
-            </Field>
-          </div>
 
-          {/* Actuation */}
+
+          {/* Images — FileUpload grid (up to 5 slots) */}
           <div className="md:col-span-2">
-            <p style={{ ...labelCls, marginBottom: "0.75rem", color: "#C6A667" }}>Nossa Atuação</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(["planning", "architecture", "incorporation", "construction"] as const).map((key) => {
-                const labels: Record<string, string> = {
-                  planning: "Planejamento", architecture: "Arquitetura",
-                  incorporation: "Incorporação", construction: "Construção",
-                };
-                return (
-                  <Field key={key} label={labels[key]}>
-                    <textarea style={{ ...inputCls, resize: "vertical" }} rows={3}
-                      value={form.actuation?.[key] ?? ""}
-                      onChange={(e) => setForm({ ...form, actuation: { ...form.actuation, [key]: e.target.value } })}
-                      placeholder={`Descrição de ${labels[key].toLowerCase()}`} />
-                  </Field>
-                );
-              })}
+            <label style={labelCls}>Mídia do Projeto (até 5 — clique para definir como capa)</label>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem", marginTop: "0.5rem" }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <FileUpload
+                  key={i}
+                  value={form.images[i]}
+                  isCover={i === form.coverIndex}
+                  onSetCover={form.images[i] ? () => setForm({ ...form, coverIndex: i }) : undefined}
+                  onUpload={(url) => {
+                    const imgs = [...form.images];
+                    imgs[i] = url;
+                    // Fill any gaps with empty strings
+                    while (imgs.length <= i) imgs.push("");
+                    setForm({ ...form, images: imgs.filter((_, idx) => idx <= i || imgs[idx]) });
+                  }}
+                  onRemove={() => {
+                    const imgs = form.images.filter((_, idx) => idx !== i);
+                    setForm({ ...form, images: imgs, coverIndex: form.coverIndex === i ? 0 : form.coverIndex > i ? form.coverIndex - 1 : form.coverIndex });
+                  }}
+                />
+              ))}
             </div>
-          </div>
-
-          {/* Images */}
-          <div className="md:col-span-2">
-            <Field label={`Imagens (até 5 URLs) — ${form.images.length}/5`}>
-              <div className="flex gap-2 mb-2">
-                <input style={{ ...inputCls, flex: 1 }} value={imageInput}
-                  onChange={(e) => setImageInput(e.target.value)}
-                  placeholder="https://... (URL da imagem)"
-                  onKeyDown={(e) => e.key === "Enter" && addImage()} />
-                <button onClick={addImage} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
-              </div>
-              {form.images.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {form.images.map((img, i) => (
-                    <div key={i} style={{ position: "relative", border: `1.5px solid ${i === form.coverIndex ? "#C6A667" : "rgba(198,166,103,0.15)"}`, cursor: "pointer" }}
-                      title="Clique para definir como capa" onClick={() => setForm({ ...form, coverIndex: i })}>
-                      <img src={img} alt="" style={{ width: "72px", height: "52px", objectFit: "cover", display: "block" }}
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                      {i === form.coverIndex && (
-                        <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, backgroundColor: "#C6A667", color: "#0F1B2D", fontSize: "0.5rem", fontWeight: 700, textAlign: "center", letterSpacing: "0.1em", padding: "1px", fontFamily: "'Montserrat', sans-serif" }}>
-                          CAPA
-                        </span>
-                      )}
-                      <button onClick={(e) => { e.stopPropagation(); removeImage(i); }}
-                        style={{ position: "absolute", top: "2px", right: "2px", background: "rgba(15,27,45,0.8)", border: "none", color: "#F5F3EE", cursor: "pointer", padding: "1px", display: "flex" }}>
-                        <X size={10} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Field>
           </div>
 
           {/* Differentials (bullet list) */}
@@ -654,13 +620,14 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
             </Field>
           </div>
           <div className="md:col-span-2">
-            <Field label="Foto (URL opcional)">
-              <input style={inputCls} value={form.photo ?? ""} onChange={(e) => setForm({ ...form, photo: e.target.value })} placeholder="https://... (URL da foto)" />
-              {form.photo && (
-                <img src={form.photo} alt="preview" style={{ marginTop: "0.5rem", height: "80px", objectFit: "cover", border: "1px solid rgba(198,166,103,0.2)" }}
-                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-              )}
-            </Field>
+            <label style={labelCls}>Foto / Vídeo (opcional)</label>
+            <div style={{ maxWidth: "320px", marginTop: "0.4rem" }}>
+              <FileUpload
+                value={form.photo || undefined}
+                onUpload={(url) => setForm({ ...form, photo: url })}
+                onRemove={() => setForm({ ...form, photo: "" })}
+              />
+            </div>
           </div>
           <div className="md:col-span-2">
             <Field label="Link (opcional — direciona para página de projeto)">

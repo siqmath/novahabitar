@@ -162,6 +162,13 @@ export default function ProjectDetail() {
                 onClick={() => images.length > 0 && setLightboxIndex(activeImage)}
               >
                 {images.length > 0 ? (
+                  /\.(mp4|webm|mov|ogg)(\?|$)/i.test(images[activeImage]) ? (
+                    <video
+                      src={images[activeImage]}
+                      controls
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : (
                   <img
                     src={images[activeImage]}
                     alt={project.title}
@@ -169,6 +176,7 @@ export default function ProjectDetail() {
                     onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
                     onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
                   />
+                  )
                 ) : (
                   <div
                     style={{
@@ -209,7 +217,11 @@ export default function ProjectDetail() {
                         transition: "border-color 0.2s ease",
                       }}
                     >
-                      <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      {/\.(mp4|webm|mov|ogg)(\?|$)/i.test(img) ? (
+                        <video src={img} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
+                      ) : (
+                        <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      )}
                     </button>
                   ))}
                 </div>
