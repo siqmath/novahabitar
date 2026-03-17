@@ -7,6 +7,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useLang } from "@/contexts/LangContext";
+import { motion } from "framer-motion";
+import { settingsStore } from "@/lib/store";
 import {
   Home,
   FolderOpen,
@@ -19,7 +21,8 @@ import {
   ChevronRight,
   Menu,
   X,
-  Settings,
+  Handshake,
+  BookOpen,
 } from "lucide-react";
 
 // Logo Solo fundo escuro monocromático — used in sidebar (collapsed: solo icon; expanded: full)
@@ -29,8 +32,23 @@ const LOGO_SOLO =
 export default function Sidebar() {
   const [expanded, setExpanded] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
   const { t, lang, setLang } = useLang();
   const [location, navigate] = useLocation();
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setShowHistory(settingsStore.get().historyPageVisible);
+    };
+    handleStorageChange();
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("nh_settings_updated", handleStorageChange);
+    
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("nh_settings_updated", handleStorageChange);
+    };
+  }, []);
 
   // Close mobile on route change
   useEffect(() => {
@@ -38,14 +56,16 @@ export default function Sidebar() {
   }, [location]);
 
   const navItems = [
-    { icon: <Home size={18} />, label: t.nav.home, action: () => { navigate(`/${lang}`); setTimeout(() => document.getElementById("inicio")?.scrollIntoView({ behavior: "smooth" }), 100); } },
-    { icon: <FolderOpen size={18} />, label: t.nav.projects, action: () => navigate(`/${lang}/projetos`) },
-    { icon: <Layers size={18} />, label: t.nav.actuation, action: () => scrollTo("atuacao") },
-    { icon: <Star size={18} />, label: t.nav.differentials, action: () => scrollTo("diferenciais") },
-    { icon: <ShieldCheck size={18} />, label: t.nav.governance, action: () => scrollTo("governanca") },
-    { icon: <Leaf size={18} />, label: t.nav.sustainability, action: () => scrollTo("sustentabilidade") },
-    { icon: <Users size={18} />, label: t.nav.about, action: () => scrollTo("quem-somos") },
-    { icon: <Mail size={18} />, label: t.nav.contact, action: () => navigate(`/${lang}/contato`) },
+    { icon: <Home size={18} />, label: t.nav.home, path: `/${lang}`, action: () => { navigate(`/${lang}`); setTimeout(() => document.getElementById("inicio")?.scrollIntoView({ behavior: "smooth" }), 100); } },
+    { icon: <Layers size={18} />, label: t.nav.actuation, path: "#atuacao", action: () => scrollTo("atuacao") },
+    { icon: <FolderOpen size={18} />, label: t.nav.projects, path: `/${lang}/projetos`, action: () => navigate(`/${lang}/projetos`) },
+    { icon: <Handshake size={18} />, label: lang === "en" ? "Partners" : "Parceiros", path: `/${lang}/parceiros`, action: () => navigate(`/${lang}/parceiros`) },
+    { icon: <Star size={18} />, label: t.nav.differentials, path: "#diferenciais", action: () => scrollTo("diferenciais") },
+    { icon: <ShieldCheck size={18} />, label: t.nav.governance, path: "#governanca", action: () => scrollTo("governanca") },
+    { icon: <Leaf size={18} />, label: t.nav.sustainability, path: "#sustentabilidade", action: () => scrollTo("sustentabilidade") },
+    { icon: <Users size={18} />, label: t.nav.about, path: "#quem-somos", action: () => scrollTo("quem-somos") },
+    ...(showHistory ? [{ icon: <BookOpen size={18} />, label: lang === "en" ? "Our History" : "Nossa História", path: "#nossa-historia", action: () => scrollTo("nossa-historia") }] : []),
+    { icon: <Mail size={18} />, label: t.nav.contact, path: `/${lang}/contato`, action: () => navigate(`/${lang}/contato`) },
   ];
 
   const scrollTo = (hash: string) => {
@@ -90,6 +110,93 @@ export default function Sidebar() {
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
       >
+        {/* Premium Language Selector — Above Logo */}
+        <div 
+          className="flex items-center justify-center py-6 w-full"
+          style={{ borderBottom: "1px solid rgba(198,166,103,0.08)" }}
+        >
+          <div 
+            style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              backgroundColor: "rgba(10,20,32,0.8)", 
+              padding: "2px",
+              borderRadius: "20px",
+              position: "relative",
+              width: isOpen ? "84px" : "44px", // Smaller when collapsed
+              height: "30px",
+              cursor: "pointer",
+              transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+              border: "1px solid rgba(198,166,103,0.25)",
+              boxShadow: "inset 0 2px 4px rgba(0,0,0,0.4)"
+            }}
+            onClick={() => setLang(lang === "pt" ? "en" : "pt")}
+          >
+            {/* Flag Icons (Only visible when expanded) */}
+            {isOpen && (
+              <div style={{ 
+                display: "flex", 
+                width: "100%", 
+                justifyContent: "space-between",
+                padding: "0 6px",
+                alignItems: "center",
+                zIndex: 0
+              }}>
+                <img 
+                  src="https://flagcdn.com/w40/br.png" 
+                  alt="PT" 
+                  style={{ width: "16px", height: "auto", borderRadius: "1px", opacity: 1, transition: "opacity 0.3s" }} 
+                />
+                <img 
+                  src="https://flagcdn.com/w40/us.png" 
+                  alt="EN" 
+                  style={{ width: "16px", height: "auto", borderRadius: "1px", opacity: 1, transition: "opacity 0.3s" }} 
+                />
+              </div>
+            )}
+
+            {/* Premium Sliding Knob */}
+            <motion.div 
+              animate={{ 
+                x: lang === "pt" ? 0 : (isOpen ? 44 : 12),
+                width: isOpen ? "36px" : "28px" 
+              }}
+              transition={{ type: "spring", stiffness: 350, damping: 32 }}
+              style={{
+                position: "absolute",
+                top: "1px",
+                left: "2px",
+                height: "26px",
+                backgroundColor: "#F5F3EE",
+                borderRadius: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 1,
+                boxShadow: "0 3px 6px rgba(0,0,0,0.5)",
+              }}
+            >
+              {isOpen ? (
+                <img
+                  src={lang === "pt" ? "https://flagcdn.com/w40/br.png" : "https://flagcdn.com/w40/us.png"}
+                  alt={lang === "pt" ? "PT" : "EN"}
+                  style={{ width: "18px", height: "auto", borderRadius: "2px" }}
+                />
+              ) : (
+                <span style={{ 
+                  fontFamily: "'Montserrat', sans-serif", 
+                  fontSize: "0.6rem", 
+                  fontWeight: 800, 
+                  color: "#0F1B2D",
+                  letterSpacing: "0.01em"
+                }}>
+                  {lang === "pt" ? "PT" : "EN"}
+                </span>
+              )}
+            </motion.div>
+          </div>
+        </div>
+
         {/* Logo area — 200% larger */}
         <div
           className="flex items-center w-full px-3 py-4"
@@ -118,10 +225,7 @@ export default function Sidebar() {
         {/* Nav items */}
         <nav className="flex flex-col w-full flex-1 py-4 gap-0.5 overflow-hidden">
           {navItems.map((item, idx) => {
-            const isActive =
-              idx === 1
-                ? location.includes("/projetos")
-                : !location.includes("/projetos") && location.startsWith(`/${lang}`);
+            const isActive = location === item.path || (item.path.startsWith("/") && location.startsWith(item.path));
 
             return (
               <button
@@ -129,10 +233,10 @@ export default function Sidebar() {
                 onClick={item.action}
                 className="flex items-center w-full px-4 py-3 transition-all duration-150"
                 style={{
-                  color: idx === 1 && location.includes("/projetos") ? "#C6A667" : "rgba(245,243,238,0.65)",
-                  background: idx === 1 && location.includes("/projetos") ? "rgba(198,166,103,0.07)" : "transparent",
+                  color: isActive ? "#C6A667" : "rgba(245,243,238,0.65)",
+                  background: isActive ? "rgba(198,166,103,0.07)" : "transparent",
                   border: "none",
-                  borderLeft: idx === 1 && location.includes("/projetos") ? "2px solid #C6A667" : "2px solid transparent",
+                  borderLeft: isActive ? "2px solid #C6A667" : "2px solid transparent",
                   textAlign: "left",
                   whiteSpace: "nowrap",
                   gap: "1rem",
@@ -142,9 +246,8 @@ export default function Sidebar() {
                   e.currentTarget.style.backgroundColor = "rgba(198,166,103,0.07)";
                 }}
                 onMouseLeave={(e) => {
-                  const isPortfolio = idx === 1 && location.includes("/projetos");
-                  e.currentTarget.style.color = isPortfolio ? "#C6A667" : "rgba(245,243,238,0.65)";
-                  e.currentTarget.style.backgroundColor = isPortfolio ? "rgba(198,166,103,0.07)" : "transparent";
+                  e.currentTarget.style.color = isActive ? "#C6A667" : "rgba(245,243,238,0.65)";
+                  e.currentTarget.style.backgroundColor = isActive ? "rgba(198,166,103,0.07)" : "transparent";
                 }}
               >
                 <span style={{ flexShrink: 0, width: "18px" }}>{item.icon}</span>
@@ -168,87 +271,11 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom: Language toggle + Admin link */}
+        {/* Bottom: Only expand hint */}
         <div
           className="w-full px-4 py-4 flex flex-col gap-3"
           style={{ borderTop: "1px solid rgba(198,166,103,0.12)" }}
         >
-          {/* Language button */}
-          <button
-            onClick={() => setLang(lang === "pt" ? "en" : "pt")}
-            className="flex items-center gap-3 w-full transition-colors"
-            style={{
-              color: "#C6A667",
-              background: "transparent",
-              border: "none",
-              textAlign: "left",
-              padding: "0.25rem 0",
-              whiteSpace: "nowrap",
-            }}
-          >
-            <span
-              style={{
-                width: "18px",
-                height: "18px",
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily: "'Montserrat', sans-serif",
-                fontWeight: 700,
-                fontSize: "0.65rem",
-                letterSpacing: "0.05em",
-                border: "1px solid #C6A667",
-              }}
-            >
-              {t.langSwitch}
-            </span>
-            {isOpen && (
-              <span
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.1em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {t.langSwitch === "EN" ? "English" : "Português"}
-              </span>
-            )}
-          </button>
-
-          {/* Admin link */}
-          <button
-            onClick={() => navigate("/admin")}
-            className="flex items-center gap-3 w-full transition-colors"
-            style={{
-              color: "rgba(245,243,238,0.3)",
-              background: "transparent",
-              border: "none",
-              textAlign: "left",
-              padding: "0.25rem 0",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "rgba(245,243,238,0.7)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(245,243,238,0.3)"; }}
-          >
-            <Settings size={14} style={{ flexShrink: 0, width: "18px" }} />
-            {isOpen && (
-              <span
-                style={{
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.7rem",
-                  fontWeight: 500,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Admin
-              </span>
-            )}
-          </button>
-
           {/* Expand hint (only when collapsed on desktop) */}
           {!isOpen && (
             <div

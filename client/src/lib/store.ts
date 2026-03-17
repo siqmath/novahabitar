@@ -13,27 +13,75 @@ export interface ProjectActuation {
   construction: string;
 }
 
+export interface ProjectMedia {
+  url: string;
+  type: "image" | "video";
+  title?: string;
+  description?: string;
+  titleEn?: string;
+  descriptionEn?: string;
+}
+
 export interface Project {
   id: string;
   slug: string;
   title: string;
   location: string;
-  description: string;        // short tagline shown in cards/carousel
-  shortDescription: string;   // one-liner shown in hero of detail page
-  aboutText: string;          // long "Sobre o projeto" text (multi-paragraph)
-  actuationIntro: string;     // intro paragraph for "Atuação da Nova Habitar" box
-  techniques: string[];       // tags shown in carousel card
-  differentials: string[];    // bullet list in "Diferenciais" section
-  images: string[];           // up to 5 URLs
+  tagline: string;
+  taglineEn?: string;
+  description: string;
+  descriptionEn?: string;
+  shortDescription: string;
+  shortDescriptionEn?: string;
+  aboutText: string;
+  aboutTextEn?: string;
+  actuationIntro: string;
+  actuationIntroEn?: string;
+  techniques: string[];
+  differentials: string[];
+  differentialsEn?: string[];
+  images: ProjectMedia[];
   coverIndex: number;
+  mainImageIndex: number;
   status: ProjectStatus;
   type: ProjectType;
   featured: boolean;
-  // Technical data (sidebar)
-  typology: string;       // ex: "Salas comerciais de 30 a 150 m²"
-  builtArea: string;      // ex: "12.000 m²"
-  units: string;          // ex: "120 unidades"
+  typology: string;
+  typologyEn?: string;
+  builtArea: string;
+  units: string;
   actuation: ProjectActuation;
+  actuationEn?: ProjectActuation;
+  createdAt: string;
+}
+
+export interface PartnerMedia {
+  url: string;
+  type: "image" | "video";
+  title: string;
+  description: string;
+  titleEn?: string;
+  descriptionEn?: string;
+}
+
+export interface Partner {
+  id: string;
+  name: string;
+  slug: string;
+  logo: string;
+  actuation: string;
+  actuationEn?: string;
+  shortDescription?: string;
+  shortDescriptionEn?: string;
+  fullDescription?: string;
+  fullDescriptionEn?: string;
+  differentials?: string[];
+  differentialsEn?: string[];
+  website?: string;
+  gallery?: PartnerMedia[];
+  active: boolean;
+  featured: boolean;
+  order: number;
   createdAt: string;
 }
 
@@ -41,7 +89,9 @@ export interface TimelineEntry {
   id: string;
   date: string;
   title: string;
+  titleEn?: string;
   description: string;
+  descriptionEn?: string;
   photo?: string; // optional photo URL
   link?: string;
   createdAt: string;
@@ -54,6 +104,12 @@ export interface ContactInfo {
   address: string;
   instagram: string;
   linkedin: string;
+}
+
+export interface SiteSettings {
+  historyPageVisible: boolean;
+  historySubtitle?: string;
+  historySubtitleEn?: string;
 }
 
 // ── Default seed data ──────────────────────────────────────────────────────
@@ -73,6 +129,8 @@ const DEFAULT_PROJECTS: Project[] = [
     slug: "residencial-jardim-das-acacias",
     title: "Residencial Jardim das Acácias",
     location: "São Gonçalo — Alcântara",
+    tagline: "Nosso marco de excelência e satisfação em Alcântara.",
+    taglineEn: "Our landmark of excellence and satisfaction in Alcântara.",
     description:
       "Empreendimento residencial entregue com alto padrão de acabamento e conformidade regulatória. Laje protendida, tratamento acústico e regularidade fundiária garantida.",
     shortDescription: "Empreendimento entregue com alto padrão de acabamento e satisfação dos moradores.",
@@ -81,9 +139,10 @@ const DEFAULT_PROJECTS: Project[] = [
     differentials: ["Entrega antecipada em 2 meses", "Acabamento superior ao memorial descritivo", "Índice de satisfação de 98% dos moradores", "Valorização de 35% após entrega"],
     techniques: ["Laje protendida", "Tratamento acústico", "Regularidade fundiária"],
     images: [
-      "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png",
+      { url: "https://cdn.abacus.ai/images/539308e5-66ea-444f-8ad8-7a2a523b1955.png", type: "image" },
     ],
     coverIndex: 0,
+    mainImageIndex: 0,
     status: "entregue",
     type: "residencial",
     featured: true,
@@ -103,6 +162,8 @@ const DEFAULT_PROJECTS: Project[] = [
     slug: "edificio-corporativo-atlantico",
     title: "Edifício Corporativo Atlântico",
     location: "Niterói — Centro",
+    tagline: "O futuro do ambiente corporativo em Niterói.",
+    taglineEn: "The future of corporate environments in Niterói.",
     description:
       "Edifício comercial de alto padrão com infraestrutura corporativa completa e gestão integrada. Eficiência energética, automação predial e certificação PBQP-H.",
     shortDescription: "Empreendimento corporativo de alto padrão com infraestrutura completa em Niterói.",
@@ -111,9 +172,10 @@ const DEFAULT_PROJECTS: Project[] = [
     differentials: ["Infraestrutura corporativa completa", "Eficiência energética certificada", "Automação predial integrada", "Localização estratégica no centro de Niterói"],
     techniques: ["Eficiência energética", "Automação predial", "Certificação PBQP-H"],
     images: [
-      "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png",
+      { url: "https://cdn.abacus.ai/images/980b9b7a-4b2b-4357-a8e8-09248f241036.png", type: "image" },
     ],
     coverIndex: 0,
+    mainImageIndex: 0,
     status: "em-desenvolvimento",
     type: "comercial",
     featured: true,
@@ -133,6 +195,8 @@ const DEFAULT_PROJECTS: Project[] = [
     slug: "residencial-mirante-do-vale",
     title: "Residencial Mirante do Vale",
     location: "São Gonçalo — Centro",
+    tagline: "Eficiência e sustentabilidade no coração de São Gonçalo.",
+    taglineEn: "Efficiency and sustainability in the heart of São Gonçalo.",
     description:
       "Residencial de médio e alto padrão com foco em eficiência de planta e valorização patrimonial. Planta eficiente, controle de custos e gestão por ERP.",
     shortDescription: "Residencial de alto padrão com foco em eficiência de planta e valorização patrimonial.",
@@ -141,9 +205,10 @@ const DEFAULT_PROJECTS: Project[] = [
     differentials: ["Planta eficiente com aproveitamento máximo", "Gestão de obra por ERP integrado", "Controle rigoroso de custos e prazos", "Localização estratégica com alto potencial de valorização"],
     techniques: ["Planta eficiente", "Controle de custos", "Gestão por ERP"],
     images: [
-      "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png",
+      { url: "https://cdn.abacus.ai/images/6ad4be35-f622-4df6-8549-234a0a4c1f14.png", type: "image" },
     ],
     coverIndex: 0,
+    mainImageIndex: 0,
     status: "em-obras",
     type: "residencial",
     featured: true,
@@ -158,6 +223,25 @@ const DEFAULT_PROJECTS: Project[] = [
     },
     createdAt: "2024-03-10",
   },
+];
+
+const DEFAULT_PARTNERS: Partner[] = [
+  {
+    id: "part-1",
+    name: "Caixa Econômica Federal",
+    slug: "caixa",
+    logo: "https://placehold.co/400x160/0F1B2D/F5F3EE?text=CAIXA",
+    actuation: "Financiamento Imobiliário",
+    shortDescription: "Principal agente financeiro do Programa Minha Casa Minha Vida e líder em crédito imobiliário no Brasil.",
+    fullDescription: "A Caixa Econômica Federal é o principal agente de fomento ao crédito imobiliário no Brasil e parceira estratégica da Nova Habitar em financiamentos estruturados.",
+    differentials: ["Maior banco de crédito imobiliário do Brasil", "Financiamento Minha Casa Minha Vida", "Atendimento a empreendimentos de médio e alto padrão"],
+    website: "",
+    gallery: [],
+    active: true,
+    featured: true,
+    order: 0,
+    createdAt: "2024-01-01",
+  }
 ];
 
 const DEFAULT_TIMELINE: TimelineEntry[] = [
@@ -214,7 +298,8 @@ const DEFAULT_CONTACT: ContactInfo = {
 
 // ── Storage helpers ────────────────────────────────────────────────────────
 
-const PROJECTS_KEY = "nh_projects_v2";
+const PROJECTS_KEY = "nh_projects_v5";
+const PARTNERS_KEY = "nh_partners_v7";
 const TIMELINE_KEY = "nh_timeline_v2";
 const CONTACT_KEY = "nh_contact";
 
@@ -228,6 +313,18 @@ function loadProjects(): Project[] {
 
 function saveProjects(projects: Project[]): void {
   localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects));
+}
+
+function loadPartners(): Partner[] {
+  try {
+    const raw = localStorage.getItem(PARTNERS_KEY);
+    if (raw) return JSON.parse(raw) as Partner[];
+  } catch {}
+  return DEFAULT_PARTNERS;
+}
+
+function savePartners(partners: Partner[]): void {
+  localStorage.setItem(PARTNERS_KEY, JSON.stringify(partners));
 }
 
 function loadTimeline(): TimelineEntry[] {
@@ -277,6 +374,26 @@ export const projectStore = {
   },
 };
 
+export const partnerStore = {
+  getAll: (): Partner[] => loadPartners().sort((a, b) => a.order - b.order),
+  getFeatured: (): Partner[] => loadPartners().filter((p) => p.featured && p.active).sort((a, b) => a.order - b.order),
+  getById: (id: string): Partner | undefined => loadPartners().find((p) => p.id === id),
+  save: (partner: Partner): void => {
+    if (!partner.slug) partner.slug = slugify(partner.name);
+    const all = loadPartners();
+    const idx = all.findIndex((p) => p.id === partner.id);
+    if (idx >= 0) all[idx] = partner;
+    else all.push(partner);
+    savePartners(all);
+  },
+  delete: (id: string): void => {
+    savePartners(loadPartners().filter((p) => p.id !== id));
+  },
+  reset: (): void => {
+    savePartners(DEFAULT_PARTNERS);
+  },
+};
+
 export const timelineStore = {
   getAll: (): TimelineEntry[] => loadTimeline(),
   getById: (id: string): TimelineEntry | undefined => loadTimeline().find((e) => e.id === id),
@@ -299,6 +416,30 @@ export const contactStore = {
   get: (): ContactInfo => loadContact(),
   save: (info: ContactInfo): void => saveContact(info),
   reset: (): void => saveContact(DEFAULT_CONTACT),
+};
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  historyPageVisible: true,
+  historySubtitle: "A trajetória da Nova Habitar, marcada por solidez, crescimento e grandes realizações no mercado imobiliário.",
+  historySubtitleEn: "The trajectory of Nova Habitar, marked by solidity, growth, and great achievements in the real estate market."
+};
+
+function loadSettings(): SiteSettings {
+  try {
+    const json = localStorage.getItem("nh_settings");
+    if (json) return JSON.parse(json);
+  } catch (err) {}
+  return DEFAULT_SETTINGS;
+}
+
+function saveSettings(s: SiteSettings) {
+  localStorage.setItem("nh_settings", JSON.stringify(s));
+  window.dispatchEvent(new Event("nh_settings_updated"));
+}
+
+export const settingsStore = {
+  get: (): SiteSettings => loadSettings(),
+  save: (settings: SiteSettings): void => saveSettings(settings),
 };
 
 export function generateId(): string {

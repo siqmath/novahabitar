@@ -10,6 +10,8 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, MapPin, Layers } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
+import { useLocation } from "wouter";
+import { contactStore, type ContactInfo } from "@/lib/store";
 
 const HERO_IMAGE =
   "https://cdn.abacus.ai/images/82408a85-1d28-4ae0-a10b-32c472db4848.png";
@@ -19,9 +21,15 @@ const LOGO_ICON =
   "https://private-us-east-1.manuscdn.com/user_upload_by_module/session_file/310519663391268624/LnpeZzuhwUyRuTcN.png?Expires=1804180331&Signature=mFjQOcyHBR58Blw-yQ1kFH33DKgd3lJmkZ0cp1425z9-97fxlcXJC9jmsrIIL3NJGV0jFL3VDckXRyc7QVtdcSGUDyeGwTCABj1uob7UzY2h9uPPysUrzMrOdRiP5C8f1t59wK6bxQaMrVv32C0NJhIZi89-NmR10HOo-OydzClKYS8WhCSrxN58DIaZO6hbNROPyHcsUXuNi3sUFf4Z5fRCGlhWXQqpoKQqz7Y3nQxv7mfnZxMfmQ034vQK5QwuxyNG8iueP8224twf8IjUvaUNzkdyEj3UjbaP0IzdlN7jsu7ua5KpgNL0ul73Va7UDG1XZzkcSAuxfLtkFDMYBA__&Key-Pair-Id=K2HSFNDJXOU9YS";
 
 export default function AnimatedHero() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const [, navigate] = useLocation();
   const [wordIndex, setWordIndex] = useState(0);
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
   const words = useMemo(() => t.hero.words, [t.hero.words]);
+
+  useEffect(() => {
+    setContactInfo(contactStore.get());
+  }, []);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -36,7 +44,7 @@ export default function AnimatedHero() {
 
   const badges = [
     { icon: <Calendar size={13} />, text: t.hero.badge1 },
-    { icon: <MapPin size={13} />, text: t.hero.badge2 },
+    { icon: <MapPin size={13} />, text: contactInfo?.address ? contactInfo.address.split("—")[0].trim() : t.hero.badge2 },
     { icon: <Layers size={13} />, text: t.hero.badge3 },
   ];
 
@@ -189,16 +197,12 @@ export default function AnimatedHero() {
             >
               {t.hero.cta1} <ArrowRight size={14} />
             </a>
-            <a
-              href="#contato"
-              onClick={(e) => {
-                e.preventDefault();
-                document.getElementById("contato")?.scrollIntoView({ behavior: "smooth" });
-              }}
+            <button
+              onClick={() => navigate(`/${lang}/contato`)}
               className="nh-btn-outline-light"
             >
               {t.hero.cta2}
-            </a>
+            </button>
           </div>
 
           {/* Badges */}

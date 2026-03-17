@@ -1,39 +1,29 @@
-/**
- * Nova Habitar — Página de Portfólio (/projetos)
- * Filtros: status (Todos / Previsto / Em desenvolvimento / Em obras / Entregue)
- * Filtro por localidade (select box)
- * Pesquisa por título/descrição
- * Cards com imagem de capa, status badge, localidade
- * Modal de detalhe ao clicar no card
- */
-
 import { useState, useEffect, useMemo } from "react";
-import { Search, MapPin, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { projectStore, STATUS_LABELS, STATUS_LABELS_EN, type Project, type ProjectStatus } from "@/lib/store";
+import { Search, ChevronLeft, ArrowRight, Building2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { projectStore, STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN, type Project, type ProjectStatus } from "@/lib/store";
 import { useLang } from "@/contexts/LangContext";
 import { useLocation } from "wouter";
+import Sidebar from "@/components/Sidebar";
 
 const GOLD = "#C6A667";
 const NAVY = "#0F1B2D";
 
-const STATUS_COLORS: Record<ProjectStatus, { bg: string; color: string; border: string }> = {
-  entregue: { bg: "rgba(198,166,103,0.12)", color: GOLD, border: "rgba(198,166,103,0.3)" },
-  "em-obras": { bg: "rgba(43,47,54,0.1)", color: "#2B2F36", border: "rgba(43,47,54,0.2)" },
-  "em-desenvolvimento": { bg: "rgba(15,27,45,0.08)", color: NAVY, border: "rgba(15,27,45,0.2)" },
-  previsto: { bg: "rgba(216,214,209,0.4)", color: "#555", border: "rgba(216,214,209,0.6)" },
+const STATUS_COLORS: Record<ProjectStatus, string> = {
+  entregue: "#4B7A5A",
+  "em-obras": "#D97706",
+  "em-desenvolvimento": "#C6A667",
+  previsto: "#6B7280",
 };
 
 export default function Projects() {
-  const { lang, t } = useLang();
+  const { lang } = useLang();
   const [, navigate] = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<string[]>([]);
   const [locationFilter, setLocationFilter] = useState<string>("all");
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [imageIndex, setImageIndex] = useState(0);
 
   useEffect(() => {
     setProjects(projectStore.getAll());
@@ -79,598 +69,332 @@ export default function Projects() {
     );
   };
 
-  const openProject = (p: Project) => {
-    setSelectedProject(p);
-    setImageIndex(p.coverIndex);
-  };
-
-  const closeProject = () => setSelectedProject(null);
-
   return (
-    <div style={{ backgroundColor: "#F5F3EE", minHeight: "100vh" }}>
-      {/* Header */}
-      <div
-        style={{
-          backgroundColor: NAVY,
-          padding: "6rem 0 3rem",
-        }}
-      >
-        <div className="container mx-auto">
-          <button
-            onClick={() => navigate(`/${lang}`)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              letterSpacing: "0.08em",
-              color: "rgba(198,166,103,0.7)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              marginBottom: "1.5rem",
-              textTransform: "uppercase",
-            }}
-          >
-            <ChevronLeft size={14} />
-            {lang === "en" ? "Back" : "Voltar"}
-          </button>
-          <div className="nh-tag">{lang === "en" ? "Portfolio" : "Portfólio"}</div>
-          <h1
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 800,
-              fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
-              letterSpacing: "0.03em",
-              color: "#F5F3EE",
-              marginBottom: "0.5rem",
-            }}
-          >
-            {lang === "en" ? "Our projects." : "Nossos projetos."}
-          </h1>
-          <p
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 300,
-              fontSize: "0.9rem",
-              color: "rgba(245,243,238,0.55)",
-            }}
-          >
-            {lang === "en"
-              ? "Developments that reflect our standard of predictable delivery."
-              : "Empreendimentos que refletem nosso padrão de entrega previsível."}
-          </p>
-        </div>
-      </div>
-
-      {/* Filters bar */}
-      <div
-        style={{
-          backgroundColor: "#fff",
-          borderBottom: "1px solid #E8E6E1",
-          position: "sticky",
-          top: 0,
-          zIndex: 30,
-        }}
-      >
-        <div className="container mx-auto" style={{ padding: "1rem 0" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.75rem",
-              alignItems: "center",
-            }}
-          >
-            {/* Search */}
-            <div
+    <div className="flex min-h-screen" style={{ backgroundColor: "#F5F3EE" }}>
+      <Sidebar />
+      <main style={{ marginLeft: "56px", flex: 1 }}>
+        {/* ── HERO ─────────────────────────────────────────────────────── */}
+        <header
+          style={{
+            backgroundColor: NAVY,
+            padding: "6rem 0 4rem",
+          }}
+        >
+          <div className="container mx-auto px-6">
+            <button
+              onClick={() => navigate(`/${lang}`)}
               style={{
-                position: "relative",
-                flex: "1 1 220px",
-                minWidth: "180px",
-              }}
-            >
-              <Search
-                size={14}
-                style={{
-                  position: "absolute",
-                  left: "0.75rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#888",
-                }}
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={lang === "en" ? "Search projects..." : "Buscar projetos..."}
-                style={{
-                  width: "100%",
-                  paddingLeft: "2.25rem",
-                  paddingRight: "0.75rem",
-                  paddingTop: "0.6rem",
-                  paddingBottom: "0.6rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.8rem",
-                  border: "1px solid #D8D6D1",
-                  backgroundColor: "#F5F3EE",
-                  color: NAVY,
-                  outline: "none",
-                }}
-              />
-            </div>
-
-            {/* Location select */}
-            <select
-              value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
-              style={{
-                padding: "0.6rem 1rem",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
                 fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.8rem",
-                border: "1px solid #D8D6D1",
-                backgroundColor: "#F5F3EE",
-                color: NAVY,
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                letterSpacing: "0.08em",
+                color: "rgba(245,243,238,0.5)",
+                background: "none",
+                border: "none",
                 cursor: "pointer",
-                outline: "none",
-                flex: "0 0 auto",
+                marginBottom: "1.5rem",
+                textTransform: "uppercase",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = GOLD)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.5)")}
             >
-              <option value="all">{lang === "en" ? "All locations" : "Todas as localidades"}</option>
-              {locations.map((loc) => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
-
-            {/* Status filter — select dropdown */}
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | "all")}
+              <ChevronLeft size={14} />
+              {lang === "en" ? "Home" : "Início"}
+            </button>
+            <div className="nh-tag" style={{ marginBottom: "1rem" }}>{lang === "en" ? "Portfolio" : "Portfólio"}</div>
+            <h1
               style={{
-                padding: "0.6rem 1rem",
                 fontFamily: "'Montserrat', sans-serif",
-                fontSize: "0.8rem",
-                border: "1px solid #D8D6D1",
-                backgroundColor: "#F5F3EE",
-                color: NAVY,
-                cursor: "pointer",
-                outline: "none",
-                flex: "0 0 auto",
-                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+                fontWeight: 800,
+                fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                letterSpacing: "0.02em",
+                color: "#F5F3EE",
+                marginBottom: "1rem",
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.boxShadow = `0 0 0 2px rgba(198,166,103,0.15)`; }}
-              onBlur={(e) => { e.currentTarget.style.borderColor = "#D8D6D1"; e.currentTarget.style.boxShadow = "none"; }}
             >
-              {statuses.map((s) => (
-                <option key={s} value={s}>{statusLabel(s)}</option>
-              ))}
-            </select>
-
+              {lang === "en" ? "Our projects." : "Nossos projetos."}
+            </h1>
+            <p
+              style={{
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 300,
+                fontSize: "1rem",
+                color: "rgba(245,243,238,0.6)",
+                maxWidth: "600px",
+                lineHeight: 1.7
+              }}
+            >
+              {lang === "en"
+                ? "Developments that reflect our standard of excellence and predictable delivery."
+                : "Empreendimentos que refletem nosso padrão de excelência e entrega previsível."}
+            </p>
           </div>
+        </header>
 
-          {/* Type filter — second row checkboxes */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center", paddingBottom: "0.25rem" }}>
-            <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888" }}>
-              {lang === "en" ? "Type:" : "Tipo:"}
-            </span>
-            {types.map((tp) => (
-              <label
-                key={tp.value}
+        {/* ── FILTERS ─────────────────────────────────────────────────── */}
+        <div
+          style={{
+            backgroundColor: "#fff",
+            borderBottom: "1px solid #E8E6E1",
+            position: "sticky",
+            top: 0,
+            zIndex: 30,
+          }}
+        >
+          <div className="container mx-auto px-6" style={{ padding: "1.25rem 0" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div
                 style={{
                   display: "flex",
+                  flexWrap: "wrap",
+                  gap: "0.75rem",
                   alignItems: "center",
-                  gap: "0.4rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: typeFilter.includes(tp.value) ? NAVY : "#777",
-                  cursor: "pointer",
-                  userSelect: "none",
-                  transition: "color 0.15s ease",
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={typeFilter.includes(tp.value)}
-                  onChange={() => toggleType(tp.value)}
+                {/* Search */}
+                <div
                   style={{
-                    accentColor: GOLD,
-                    width: "14px",
-                    height: "14px",
-                    cursor: "pointer",
+                    position: "relative",
+                    flex: "1 1 220px",
+                    minWidth: "180px",
                   }}
-                />
-                {lang === "en" ? tp.labelEn : tp.labelPt}
-              </label>
-            ))}
-          </div>
-
-          </div>
-        </div>
-      </div>
-
-      {/* Projects grid */}
-      <div className="container mx-auto" style={{ padding: "3rem 0" }}>
-        {filtered.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "5rem 0",
-              fontFamily: "'Montserrat', sans-serif",
-              color: "#888",
-              fontSize: "0.9rem",
-            }}
-          >
-            {lang === "en" ? "No projects found." : "Nenhum projeto encontrado."}
-          </div>
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {filtered.map((project, i) => {
-              const sc = STATUS_COLORS[project.status];
-              const cover = project.images[project.coverIndex] || project.images[0] || "";
-              return (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.4 }}
-                  onClick={() => openProject(project)}
-                  style={{
-                    backgroundColor: "#fff",
-                    cursor: "pointer",
-                    overflow: "hidden",
-                    border: "1px solid #E8E6E1",
-                    transition: "box-shadow 0.2s ease, transform 0.2s ease",
-                  }}
-                  whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(15,27,45,0.1)" }}
                 >
-                  {/* Image */}
-                  <div style={{ position: "relative", height: "220px", overflow: "hidden" }}>
-                    {cover ? (
-                      <img
-                        src={cover}
-                        alt={project.title}
-                        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.4s ease" }}
-                      />
-                    ) : (
-                      <div style={{ width: "100%", height: "100%", backgroundColor: "#E8E6E1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ color: "#888", fontSize: "0.8rem" }}>Sem imagem</span>
-                      </div>
-                    )}
-                    {/* Status badge */}
-                    <div
-                      style={{
-                        position: "absolute",
-                        top: "0.75rem",
-                        left: "0.75rem",
-                        backgroundColor: sc.bg,
-                        color: sc.color,
-                        border: `1px solid ${sc.border}`,
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.6rem",
-                        fontWeight: 700,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        padding: "0.25rem 0.6rem",
-                        backdropFilter: "blur(4px)",
-                      }}
-                    >
-                      {lang === "en" ? STATUS_LABELS_EN[project.status] : STATUS_LABELS[project.status]}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div style={{ padding: "1.25rem" }}>
-                    <h3
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "0.95rem",
-                        letterSpacing: "0.02em",
-                        color: NAVY,
-                        marginBottom: "0.35rem",
-                      }}
-                    >
-                      {project.title}
-                    </h3>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.35rem",
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.75rem",
-                        color: GOLD,
-                        marginBottom: "0.75rem",
-                      }}
-                    >
-                      <MapPin size={11} />
-                      {project.location}
-                    </div>
-                    <p
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.8rem",
-                        lineHeight: 1.65,
-                        color: "#2B2F36",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {project.description}
-                    </p>
-                    {project.techniques.length > 0 && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.75rem" }}>
-                        {project.techniques.slice(0, 3).map((t, i) => (
-                          <span
-                            key={i}
-                            style={{
-                              fontFamily: "'Montserrat', sans-serif",
-                              fontSize: "0.6rem",
-                              fontWeight: 600,
-                              letterSpacing: "0.07em",
-                              textTransform: "uppercase",
-                              color: "#888",
-                              border: "1px solid #D8D6D1",
-                              padding: "0.2rem 0.5rem",
-                            }}
-                          >
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Detail Modal */}
-      <AnimatePresence>
-        {selectedProject && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: "fixed",
-              inset: 0,
-              backgroundColor: "rgba(15,27,45,0.85)",
-              zIndex: 100,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "1rem",
-            }}
-            onClick={closeProject}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                backgroundColor: "#fff",
-                maxWidth: "800px",
-                width: "100%",
-                maxHeight: "90vh",
-                overflowY: "auto",
-              }}
-            >
-              {/* Image gallery */}
-              <div style={{ position: "relative", height: "320px", backgroundColor: "#E8E6E1" }}>
-                {selectedProject.images.length > 0 ? (
-                  <img
-                    src={selectedProject.images[imageIndex]}
-                    alt={selectedProject.title}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  <Search
+                    size={14}
+                    style={{
+                      position: "absolute",
+                      left: "0.75rem",
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "#888",
+                    }}
                   />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ color: "#888" }}>Sem imagem</span>
-                  </div>
-                )}
-                {/* Gallery nav */}
-                {selectedProject.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setImageIndex((i) => (i - 1 + selectedProject.images.length) % selectedProject.images.length)}
-                      style={{
-                        position: "absolute",
-                        left: "0.75rem",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        backgroundColor: "rgba(15,27,45,0.7)",
-                        border: "none",
-                        color: "#F5F3EE",
-                        width: "36px",
-                        height: "36px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <ChevronLeft size={18} />
-                    </button>
-                    <button
-                      onClick={() => setImageIndex((i) => (i + 1) % selectedProject.images.length)}
-                      style={{
-                        position: "absolute",
-                        right: "0.75rem",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        backgroundColor: "rgba(15,27,45,0.7)",
-                        border: "none",
-                        color: "#F5F3EE",
-                        width: "36px",
-                        height: "36px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <ChevronRight size={18} />
-                    </button>
-                    {/* Dots */}
-                    <div style={{ position: "absolute", bottom: "0.75rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "0.4rem" }}>
-                      {selectedProject.images.map((_, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setImageIndex(i)}
-                          style={{
-                            width: "6px",
-                            height: "6px",
-                            borderRadius: "50%",
-                            border: "none",
-                            backgroundColor: i === imageIndex ? GOLD : "rgba(255,255,255,0.5)",
-                            cursor: "pointer",
-                            padding: 0,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-                {/* Close */}
-                <button
-                  onClick={closeProject}
-                  style={{
-                    position: "absolute",
-                    top: "0.75rem",
-                    right: "0.75rem",
-                    backgroundColor: "rgba(15,27,45,0.7)",
-                    border: "none",
-                    color: "#F5F3EE",
-                    width: "36px",
-                    height: "36px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <X size={18} />
-                </button>
-                {/* Status badge */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "0.75rem",
-                    left: "0.75rem",
-                    backgroundColor: STATUS_COLORS[selectedProject.status].bg,
-                    color: STATUS_COLORS[selectedProject.status].color,
-                    border: `1px solid ${STATUS_COLORS[selectedProject.status].border}`,
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.6rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    padding: "0.25rem 0.6rem",
-                    backdropFilter: "blur(4px)",
-                  }}
-                >
-                  {lang === "en" ? STATUS_LABELS_EN[selectedProject.status] : STATUS_LABELS[selectedProject.status]}
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={lang === "en" ? "Search projects..." : "Buscar projetos..."}
+                    style={{
+                      width: "100%",
+                      paddingLeft: "2.25rem",
+                      paddingRight: "0.75rem",
+                      paddingTop: "0.6rem",
+                      paddingBottom: "0.6rem",
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: "0.8rem",
+                      border: "1px solid #D8D6D1",
+                      backgroundColor: "#F5F3EE",
+                      color: NAVY,
+                      outline: "none",
+                    }}
+                  />
                 </div>
-              </div>
 
-              {/* Detail content */}
-              <div style={{ padding: "2rem" }}>
-                <h2
+                {/* Location select */}
+                <select
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
                   style={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 800,
-                    fontSize: "1.4rem",
-                    letterSpacing: "0.03em",
-                    color: NAVY,
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  {selectedProject.title}
-                </h2>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.4rem",
+                    padding: "0.6rem 1rem",
                     fontFamily: "'Montserrat', sans-serif",
                     fontSize: "0.8rem",
-                    color: GOLD,
-                    marginBottom: "1.25rem",
+                    border: "1px solid #D8D6D1",
+                    backgroundColor: "#F5F3EE",
+                    color: NAVY,
+                    cursor: "pointer",
+                    outline: "none",
                   }}
                 >
-                  <MapPin size={13} />
-                  {selectedProject.location}
-                </div>
-                <p
+                  <option value="all">{lang === "en" ? "All locations" : "Todas as localidades"}</option>
+                  {locations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+
+                {/* Status filter */}
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as ProjectStatus | "all")}
                   style={{
+                    padding: "0.6rem 1rem",
                     fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "0.875rem",
-                    lineHeight: 1.75,
-                    color: "#2B2F36",
-                    marginBottom: "1.5rem",
+                    fontSize: "0.8rem",
+                    border: "1px solid #D8D6D1",
+                    backgroundColor: "#F5F3EE",
+                    color: NAVY,
+                    cursor: "pointer",
+                    outline: "none",
                   }}
                 >
-                  {selectedProject.description}
-                </p>
-                {selectedProject.techniques.length > 0 && (
-                  <div>
-                    <p
+                  {statuses.map((s) => (
+                    <option key={s} value={s}>{statusLabel(s)}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Type filter tags */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "center" }}>
+                <span style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#888" }}>
+                  {lang === "en" ? "Filter by type:" : "Filtrar por tipo:"}
+                </span>
+                {types.map((tp) => (
+                  <label
+                    key={tp.value}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                      fontFamily: "'Montserrat', sans-serif",
+                      fontSize: "0.75rem",
+                      fontWeight: 600,
+                      color: typeFilter.includes(tp.value) ? NAVY : "rgba(15,27,45,0.4)",
+                      cursor: "pointer",
+                      transition: "color 0.15s ease",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={typeFilter.includes(tp.value)}
+                      onChange={() => toggleType(tp.value)}
+                      style={{ accentColor: GOLD }}
+                    />
+                    {lang === "en" ? tp.labelEn : tp.labelPt}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── PROJECTS GRID ───────────────────────────────────────────── */}
+        <section style={{ padding: "4rem 0" }}>
+          <div className="container mx-auto px-6">
+            {filtered.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "6rem 0",
+                  fontFamily: "'Montserrat', sans-serif",
+                  color: "#888",
+                }}
+              >
+                {lang === "en" ? "No projects found matching these filters." : "Nenhum projeto encontrado com estes filtros."}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                  gap: "2.5rem",
+                }}
+              >
+                {filtered.map((project, i) => {
+                  const cover = project.images[project.mainImageIndex]?.url || project.images[0]?.url || "";
+                  
+                  return (
+                    <motion.div
+                      key={project.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.05, duration: 0.5 }}
+                      onClick={() => navigate(`/${lang}/projetos/${project.slug}`)}
                       style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontSize: "0.65rem",
-                        fontWeight: 700,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        color: "#888",
-                        marginBottom: "0.6rem",
+                        backgroundColor: "#fff",
+                        border: "1px solid #E8E6E1",
+                        cursor: "pointer",
+                        overflow: "hidden",
+                        transition: "box-shadow 0.3s ease, transform 0.3s ease"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-6px)";
+                        e.currentTarget.style.boxShadow = "0 15px 35px rgba(15,27,45,0.08)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "none";
                       }}
                     >
-                      {lang === "en" ? "Techniques" : "Técnicas utilizadas"}
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                      {selectedProject.techniques.map((tech, i) => (
-                        <span
-                          key={i}
-                          style={{
-                            fontFamily: "'Montserrat', sans-serif",
-                            fontSize: "0.65rem",
-                            fontWeight: 600,
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: NAVY,
-                            border: `1px solid ${GOLD}`,
-                            padding: "0.3rem 0.7rem",
-                          }}
-                        >
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                      {/* Thumbnail section */}
+                      <div style={{ height: "200px", position: "relative", overflow: "hidden" }}>
+                        {cover ? (
+                          <img
+                            src={cover}
+                            alt={project.title}
+                            style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform 0.6s ease" }}
+                          />
+                        ) : (
+                          <div style={{ width: "100%", height: "100%", backgroundColor: "rgba(15,27,45,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Building2 size={32} style={{ color: "rgba(15,27,45,0.1)" }} />
+                          </div>
+                        )}
+                        {/* Status badge in card */}
+                        <div style={{
+                          position: "absolute",
+                          top: "1rem",
+                          left: "1rem",
+                          backgroundColor: "rgba(15,27,45,0.85)",
+                          backdropFilter: "blur(4px)",
+                          color: "#F5F3EE",
+                          padding: "0.3rem 0.75rem",
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontSize: "0.6rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          borderLeft: `3px solid ${GOLD}`
+                        }}>
+                          {lang === "en" ? STATUS_LABELS_EN[project.status] : STATUS_LABELS[project.status]}
+                        </div>
+                      </div>
+
+                      {/* Content section */}
+                      <div style={{ padding: "1.5rem" }}>
+                        <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, marginBottom: "0.5rem" }}>
+                          {lang === "en" ? TYPE_LABELS_EN[project.type] : TYPE_LABELS[project.type]} — {project.location}
+                        </p>
+                        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "1.2rem", color: NAVY, marginBottom: "0.75rem", lineHeight: 1.25, letterSpacing: "-0.01em" }}>
+                          {project.title}
+                        </h2>
+                        <p style={{
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontSize: "0.85rem",
+                          color: "rgba(15,27,45,0.6)",
+                          lineHeight: 1.6,
+                          marginBottom: "1.5rem",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden"
+                        }}>
+                          {(lang === "en" ? (project.descriptionEn || project.description) : project.description)}
+                        </p>
+
+                        <div style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          fontFamily: "'Montserrat', sans-serif",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          color: GOLD
+                        }}>
+                          {lang === "en" ? "Explore project" : "Explorar projeto"} <ArrowRight size={14} />
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </div>
+        </section>
+      </main>
     </div>
   );
 }

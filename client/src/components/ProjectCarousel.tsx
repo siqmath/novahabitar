@@ -75,7 +75,7 @@ export default function ProjectCarousel() {
   if (projects.length === 0) return null;
 
   const current = projects[currentIndex];
-  const coverUrl = current.images[current.coverIndex] || current.images[0] || "";
+  const coverUrl = current.images[current.mainImageIndex]?.url || current.images[0]?.url || "";
   const statusLabel = lang === "en"
     ? STATUS_LABELS_EN[current.status]
     : STATUS_LABELS[current.status];

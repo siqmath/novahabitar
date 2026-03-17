@@ -16,17 +16,18 @@ export const translations = {
       governance: "Governança",
       sustainability: "Sustentabilidade",
       about: "Quem Somos",
+      history: "Nossa História",
       contact: "Contato",
     },
     langSwitch: "EN",
 
     // HERO
     hero: {
-      prefix: "Consultoria para transformar",
+      prefix: "Consolidando grandes",
       prefix2: "projetos em ativos imobiliários",
       words: ["sólidos", "previsíveis", "lucrativos"],
       subtitle:
-        "Integramos planejamento, arquitetura, incorporação e execução com rigor técnico e governança em cada etapa do empreendimento.",
+        "Desenvolvimento, incorporação e construção de empreendimentos estruturados.",
       cta1: "Ver portfólio",
       cta2: "Agendar conversa técnica",
       badge1: "Desde 2012",
@@ -175,17 +176,17 @@ export const translations = {
       tag: "Institucional",
       title: "A estrutura por trás da Nova Habitar.",
       body1:
-        "A Incorporadora e Construtora Nova Habitar Ltda. (CNPJ 16.692.513/0001-40) é especializada no desenvolvimento, incorporação e construção de empreendimentos imobiliários de médio e alto padrão.",
+        "A Nova Habitar Ltda. é especialista em todo o ciclo: do desenvolvimento e incorporação à construção de empreendimentos imobiliários de médio e alto padrão. Nosso foco é converter projetos estruturados em resultados sólidos e rentáveis.",
       body2:
-        "Sob a liderança de Robson Gonçalves (CEO), a empresa reúne mais de três gerações de experiência no setor, aliando conhecimento técnico consolidado, visão estratégica de longo prazo e ampla capacidade de articulação institucional.",
+        "Liderados pelo CEO Robson Gonçalves e ancorados em mais de três gerações de atuação no mercado, resolvemos a complexidade do setor por meio de forte precisão técnica, visão estratégica de longo prazo e profunda capacidade de articulação institucional.",
       mission: "Missão",
       missionText:
-        "Desenvolver soluções imobiliárias que gerem valor sustentável, segurança patrimonial e qualidade de vida ao usuário.",
+        "Desenvolver soluções imobiliárias ágeis que geram valor sustentável real, máxima segurança patrimonial e qualidade de vida superior ao usuário.",
       vision: "Visão",
       visionText:
-        "Ser referência em incorporação e desenvolvimento urbano sustentável no Brasil.",
+        "Consolidar-se como a principal referência nacional em formulação de investimento de ativos imobiliários altamente rentáveis no Brasil.",
       values: "Valores",
-      valuesText: "Ética, responsabilidade técnica, inovação e sustentabilidade.",
+      valuesText: "Ética inegociável, extrema responsabilidade técnica, segurança em todos os níveis e sustentabilidade aplicada.",
       cta: "",
     },
 
@@ -217,16 +218,17 @@ export const translations = {
       governance: "Governance",
       sustainability: "Sustainability",
       about: "About Us",
+      history: "Our History",
       contact: "Contact",
     },
     langSwitch: "PT",
 
     hero: {
-      prefix: "Consulting to transform projects",
-      prefix2: "into real estate assets",
+      prefix: "Consolidating large",
+      prefix2: "projects into real estate assets",
       words: ["solid", "predictable", "profitable"],
       subtitle:
-        "We integrate planning, architecture, development and construction with technical rigor and governance at every stage of the project.",
+        "Development, incorporation, and construction of structured enterprises.",
       cta1: "View portfolio",
       cta2: "Schedule a meeting",
       badge1: "Since 2012",
@@ -369,17 +371,17 @@ export const translations = {
       tag: "Institutional",
       title: "The structure behind Nova Habitar.",
       body1:
-        "Nova Habitar Incorporadora e Construtora Ltda. (CNPJ 16.692.513/0001-40) specializes in the development, incorporation and construction of mid-to-high-end real estate projects.",
+        "Nova Habitar Ltda. specializes in the complete real estate lifecycle: from the development and incorporation to the construction of mid-to-high-end properties. Our core purpose is to convert structured concepts into solid, profitable deliverables.",
       body2:
-        "Under the leadership of CEO Robson Gonçalves, the company brings together over three generations of industry experience, combining consolidated technical knowledge, long-term strategic vision and broad institutional capacity.",
+        "Led by CEO Robson Gonçalves and grounded in over three generations of market heritage, we cut through industry complexity. We achieve this by combining sharp technical precision, long-term strategic vision, and profound institutional articulation capabilities.",
       mission: "Mission",
       missionText:
-        "To develop real estate solutions that generate sustainable value, asset security and quality of life for users.",
+        "Develop agile real estate solutions that deliver genuine sustainable value, indisputable asset security, and superior user quality of life.",
       vision: "Vision",
       visionText:
-        "To be a reference in real estate development and sustainable urban development in Brazil.",
+        "To establish ourselves as the ultimate national benchmark for highly profitable real estate asset investment opportunities in Brazil.",
       values: "Values",
-      valuesText: "Ethics, technical responsibility, innovation and sustainability.",
+      valuesText: "Unwavering ethics, absolute technical responsibility, all-around security, and applied sustainability.",
       cta: "",
     },
 

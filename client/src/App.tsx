@@ -22,6 +22,8 @@ import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Contact from "./pages/Contact";
 import Admin from "./pages/Admin";
+import Partners from "./pages/Partners";
+import PartnerDetail from "./pages/PartnerDetail";
 import { useEffect } from "react";
 
 // Redirect root to /pt
@@ -41,10 +43,14 @@ function Router() {
       <Route path="/pt" component={Home} />
       <Route path="/pt/projetos" component={Projects} />
       <Route path="/pt/projetos/:slug" component={ProjectDetail} />
+      <Route path="/pt/parceiros" component={Partners} />
+      <Route path="/pt/parceiros/:slug" component={PartnerDetail} />
       <Route path="/pt/contato" component={Contact} />
       <Route path="/en" component={Home} />
       <Route path="/en/projetos" component={Projects} />
       <Route path="/en/projetos/:slug" component={ProjectDetail} />
+      <Route path="/en/parceiros" component={Partners} />
+      <Route path="/en/parceiros/:slug" component={PartnerDetail} />
       <Route path="/en/contato" component={Contact} />
       {/* Admin — no sidebar */}
       <Route path="/admin" component={Admin} />

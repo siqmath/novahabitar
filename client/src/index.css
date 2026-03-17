@@ -411,4 +411,13 @@
   .nh-img-zoom:hover img {
     transform: scale(1.04);
   }
+  /* Marquee Animation */
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
+  }
+
+  .animate-marquee {
+    animation: marquee var(--duration) linear infinite;
+  }
 }

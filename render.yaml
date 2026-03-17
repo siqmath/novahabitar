@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: nova-habitar
+    env: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CLOUDINARY_CLOUD_NAME
+        value: "{{ CLOUDINARY_CLOUD_NAME }}"
+      - key: CLOUDINARY_API_KEY
+        value: "{{ CLOUDINARY_API_KEY }}"
+      - key: CLOUDINARY_API_SECRET
+        value: "{{ CLOUDINARY_API_SECRET }}"

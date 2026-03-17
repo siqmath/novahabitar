@@ -7,11 +7,14 @@
  * No green — only Navy, Gold, Graphite, Off-White
  */
 
+import { useState, useEffect } from "react";
 import { useLang } from "@/contexts/LangContext";
 import AnimatedHero from "@/components/AnimatedHero";
 import ProjectCarousel from "@/components/ProjectCarousel";
 import { FeatureSteps } from "@/components/FeatureSteps";
-import { NHTimeline } from "@/components/NHTimeline";
+import { AboutSteps } from "@/components/AboutSteps";
+import OurHistory from "@/pages/OurHistory";
+import { partnerStore, contactStore, type Partner, type ContactInfo } from "@/lib/store";
 import { useLocation } from "wouter";
 import {
   ArrowRight,
@@ -69,7 +72,14 @@ export default function Home() {
   const { t, lang } = useLang();
   const [, navigate] = useLocation();
 
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [contact, setContact] = useState<ContactInfo | null>(null);
 
+  useEffect(() => {
+    const featured = partnerStore.getFeatured();
+    setPartners(featured);
+    setContact(contactStore.get());
+  }, []);
 
   return (
     <div style={{ backgroundColor: "#F5F3EE" }}>
@@ -170,8 +180,206 @@ export default function Home() {
         <ProjectCarousel />
       </section>
 
+      {/* ── PARCEIROS ── */}
+      {partners.length > 0 && (
+        <section 
+          id="parceiros" 
+          style={{ 
+            backgroundColor: "#E8E6E1", 
+            padding: "8rem 0",
+            overflow: "hidden"
+          }}
+        >
+          <div className="container mx-auto px-4 mb-12">
+            <div style={{ textAlign: "center", maxWidth: "720px", margin: "0 auto" }}>
+              <SectionTag label={lang === "en" ? "Partners" : "Parceiros"} />
+              <h2
+                style={{
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontWeight: 800,
+                  fontSize: "clamp(1.8rem, 4vw, 2.5rem)",
+                  letterSpacing: "0.035em",
+                  color: "#0F1B2D",
+                  marginBottom: "0.75rem",
+                  textTransform: "uppercase"
+                }}
+              >
+                {lang === "en" ? "Who builds with us" : "Quem constrói com a gente"}
+              </h2>
+              <div 
+                style={{ 
+                  width: "40px", 
+                  height: "3px", 
+                  backgroundColor: "#C6A667", 
+                  margin: "1.5rem auto" 
+                }} 
+              />
+            </div>
+          </div>
+          
+          {/* Marquee Wrapper — High duplication for small partner lists */}
+          <div className="group relative flex overflow-hidden py-16 [--gap:3.5rem] [gap:var(--gap)] [--duration:60s]">
+            <div className="flex shrink-0 [gap:var(--gap)] animate-marquee group-hover:[animation-play-state:paused]">
+              {/* Multiply the list to ensure the screen is ALWAYS overflowed, even with 1-2 partners */}
+              {[...Array(12)].map((_, setIndex) => (
+                partners.map((p) => (
+                  <div 
+                    key={`${setIndex}-${p.id}`} 
+                    onClick={() => navigate(`/${lang}/parceiros/${p.slug}`)}
+                    style={{
+                      flexShrink: 0,
+                      width: "320px",
+                      backgroundColor: "transparent",
+                      padding: "2.5rem 2rem",
+                      border: "1px solid transparent",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      gap: "1.5rem",
+                      cursor: "pointer",
+                      transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                      position: "relative"
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#ffffff";
+                      e.currentTarget.style.borderColor = "#D6D2C4";
+                      e.currentTarget.style.boxShadow = "0 20px 40px rgba(15,27,45,0.1)";
+                      e.currentTarget.style.transform = "translateY(-10px)";
+                      const content = e.currentTarget.querySelector('.partner-content') as HTMLElement;
+                      if (content) content.style.opacity = "1";
+                      const logo = e.currentTarget.querySelector('.partner-logo') as HTMLElement;
+                      if (logo) { logo.style.opacity = "1"; logo.style.filter = "grayscale(0%)"; }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                      e.currentTarget.style.borderColor = "transparent";
+                      e.currentTarget.style.boxShadow = "none";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      const content = e.currentTarget.querySelector('.partner-content') as HTMLElement;
+                      if (content) content.style.opacity = "0";
+                      const logo = e.currentTarget.querySelector('.partner-logo') as HTMLElement;
+                      if (logo) { logo.style.opacity = "0.5"; logo.style.filter = "grayscale(100%)"; }
+                    }}
+                  >
+                    {/* Logo Section */}
+                    <div style={{ height: "64px", width: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      {p.logo ? (
+                        <img 
+                          className="partner-logo"
+                          src={p.logo} 
+                          alt={p.name} 
+                          style={{ 
+                            maxWidth: "100%", 
+                            maxHeight: "100%", 
+                            objectFit: "contain", 
+                            filter: "grayscale(100%)", 
+                            opacity: 0.5, 
+                            transition: "all 0.4s ease" 
+                          }}
+                        />
+                      ) : (
+                        <span className="partner-logo" style={{ fontSize: "1.5rem", fontWeight: 800, color: "#C6A667", opacity: 0.2 }}>NH</span>
+                      )}
+                    </div>
+
+                    {/* Content Section */}
+                    <div 
+                      className="partner-content"
+                      style={{ 
+                        flexDirection: "column", 
+                        gap: "0.5rem", 
+                        width: "100%",
+                        opacity: 0,
+                        transition: "opacity 0.3s ease",
+                        display: "flex"
+                      }}
+                    >
+                      <h3 style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 700,
+                        fontSize: "0.9rem",
+                        color: "#0F1B2D",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        margin: 0
+                      }}>
+                        {p.name}
+                      </h3>
+                      <p style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontWeight: 400,
+                        fontSize: "0.75rem",
+                        lineHeight: 1.5,
+                        color: "rgba(15,27,45,0.7)",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        minHeight: "3.5em"
+                      }}>
+                        {lang === 'en' ? (p.shortDescriptionEn || p.shortDescription || p.actuationEn || p.actuation) : (p.shortDescription || p.actuation)}
+                      </p>
+                      
+                      <div style={{ 
+                        marginTop: "1rem",
+                        color: "#C6A667", 
+                        display: "flex", 
+                        alignItems: "center", 
+                        justifyContent: "center",
+                        gap: "0.5rem", 
+                        fontSize: "0.65rem", 
+                        fontWeight: 700, 
+                        textTransform: "uppercase", 
+                        letterSpacing: "0.1em" 
+                      }}>
+                        {lang === 'en' ? 'View Profile' : 'Ver Perfil'} <ArrowRight size={12} />
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ))}
+            </div>
+            
+            {/* Fade Gradients */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-[#E8E6E1] to-transparent z-10" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-48 bg-gradient-to-l from-[#E8E6E1] to-transparent z-10" />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "4rem" }}>
+            <button
+              onClick={() => navigate(`/${lang}/parceiros`)}
+              className="nh-btn-outline-dark"
+              style={{
+                border: "1px solid #C6A667",
+                color: "#0F1B2D",
+                backgroundColor: "transparent",
+                padding: "0.875rem 2.5rem",
+                fontFamily: "'Montserrat', sans-serif",
+                fontWeight: 700,
+                fontSize: "0.75rem",
+                letterSpacing: "0.15em",
+                textTransform: "uppercase",
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.backgroundColor = "#C6A667";
+                e.currentTarget.style.color = "#0F1B2D";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "#0F1B2D";
+              }}
+            >
+              {lang === "en" ? "Explore All Partners" : "Explorar todos os parceiros"}
+            </button>
+          </div>
+        </section>
+      )}
+
       {/* ── DIFERENCIAIS ── */}
-      <section id="diferenciais" style={{ backgroundColor: "#E8E6E1", padding: "6rem 0" }}>
+      <section id="diferenciais" style={{ backgroundColor: "#F5F3EE", padding: "6rem 0" }}>
         <div className="container mx-auto">
           <div>
             {/* Full-width content — no generic image */}
@@ -507,13 +715,8 @@ export default function Home() {
               alignItems: "center",
             }}
           >
-            {/* Timeline replaces static image */}
-            <div style={{ position: "relative", overflow: "hidden" }}>
-              <NHTimeline />
-            </div>
-
-            {/* Content */}
-            <div>
+            {/* Content Left */}
+            <div style={{ paddingRight: "1rem" }}>
               <SectionTag label={t.about.tag} />
               <h2
                 style={{
@@ -551,61 +754,25 @@ export default function Home() {
               >
                 {t.about.body2}
               </p>
+            </div>
 
-              {/* Mission / Vision / Values */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: "0",
-                  border: "1px solid #D8D6D1",
-                  marginBottom: "2rem",
-                }}
-              >
-                {[
+            {/* Mission / Vision / Values Right (Animated Column) */}
+            <div>
+              <AboutSteps
+                features={[
                   { label: t.about.mission, text: t.about.missionText },
                   { label: t.about.vision, text: t.about.visionText },
                   { label: t.about.values, text: t.about.valuesText },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      padding: "1.25rem",
-                      borderRight: i < 2 ? "1px solid #D8D6D1" : "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 700,
-                        fontSize: "0.65rem",
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        color: "#C6A667",
-                        marginBottom: "0.5rem",
-                      }}
-                    >
-                      {item.label}
-                    </div>
-                    <p
-                      style={{
-                        fontFamily: "'Montserrat', sans-serif",
-                        fontWeight: 400,
-                        fontSize: "0.75rem",
-                        lineHeight: 1.6,
-                        color: "#2B2F36",
-                      }}
-                    >
-                      {item.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-
+                ]}
+              />
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── NOSSA HISTÓRIA ── */}
+      <section id="nossa-historia">
+        <OurHistory />
       </section>
 
       {/* ── CTA ── */}
@@ -804,7 +971,7 @@ export default function Home() {
                   }}
                 >
                   <MapPin size={13} style={{ color: "#C6A667", flexShrink: 0, marginTop: "0.1rem" }} />
-                  São Gonçalo, Rio de Janeiro
+                  {contact?.address || "São Gonçalo, Rio de Janeiro"}
                 </div>
                 <div
                   style={{
@@ -815,7 +982,7 @@ export default function Home() {
                 >
                   <Mail size={13} style={{ color: "#C6A667", flexShrink: 0 }} />
                   <a
-                    href="mailto:contato@novahabitar.com"
+                    href={`mailto:${contact?.email || "contato@novahabitar.com"}`}
                     style={{
                       fontFamily: "'Montserrat', sans-serif",
                       fontSize: "0.825rem",
@@ -827,9 +994,35 @@ export default function Home() {
                     onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
                     onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.5)")}
                   >
-                    contato@novahabitar.com
+                    {contact?.email || "contato@novahabitar.com"}
                   </a>
                 </div>
+                {contact?.phone && (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.6rem",
+                    }}
+                  >
+                    <Mail size={13} style={{ color: "transparent", flexShrink: 0 }} /> {/* Spacer if icon is not Calendar */}
+                    <a
+                      href={`tel:${contact?.phone}`}
+                      style={{
+                        fontFamily: "'Montserrat', sans-serif",
+                        fontSize: "0.825rem",
+                        fontWeight: 400,
+                        color: "rgba(245,243,238,0.5)",
+                        textDecoration: "none",
+                        transition: "color 0.15s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.5)")}
+                    >
+                      {contact.phone}
+                    </a>
+                  </div>
+                )}
                 <div
                   style={{
                     display: "flex",

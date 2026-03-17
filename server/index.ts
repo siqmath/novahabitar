@@ -3,21 +3,29 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
-import FormData from "form-data";
-import fetch from "node-fetch";
-import { nanoid } from "nanoid";
+import fs from "fs";
+import os from "os";
+import { v2 as cloudinary } from "cloudinary";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ── Cloudinary config ─────────────────────────────────────────────────────
+// Set these env vars: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "",
+  api_key: process.env.CLOUDINARY_API_KEY || "",
+  api_secret: process.env.CLOUDINARY_API_SECRET || "",
+});
+
 // multer: store file in memory (no disk writes)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB (for videos)
   fileFilter: (_req, file, cb) => {
     const allowed = [
-      "image/jpeg", "image/png", "image/webp", "image/gif",
-      "video/mp4", "video/webm", "video/quicktime",
+      "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif", "image/svg+xml",
+      "video/mp4", "video/webm", "video/quicktime", "video/ogg",
     ];
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
@@ -33,47 +41,45 @@ async function startServer() {
 
   // ── Upload endpoint ────────────────────────────────────────────────────────
   app.post("/api/upload", upload.single("file"), async (req, res) => {
+    let tmpPath: string | null = null;
     try {
       if (!req.file) {
         res.status(400).json({ error: "Nenhum arquivo enviado" });
         return;
       }
 
-      const ext = req.file.originalname.split(".").pop() ?? "bin";
-      const uniqueName = `${nanoid(12)}.${ext}`;
-      const filePath = `nova-habitar/media/${uniqueName}`;
-
-      const forgeUrl = process.env.BUILT_IN_FORGE_API_URL ?? "https://forge.manus.ai";
-      const forgeKey = process.env.BUILT_IN_FORGE_API_KEY ?? "";
-
-      const form = new FormData();
-      form.append("file", req.file.buffer, {
-        filename: uniqueName,
-        contentType: req.file.mimetype,
-      });
-      form.append("file_path", filePath);
-
-      const response = await fetch(`${forgeUrl}/v1/storage/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${forgeKey}`,
-          ...form.getHeaders(),
-        },
-        body: form,
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error("[upload] Forge error:", response.status, text);
-        res.status(502).json({ error: "Falha no upload para o storage" });
+      // Check Cloudinary is configured
+      const cfg = cloudinary.config();
+      if (!cfg.cloud_name || !cfg.api_key || !cfg.api_secret) {
+        res.status(500).json({ error: "Cloudinary não configurado. Defina as variáveis de ambiente CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY e CLOUDINARY_API_SECRET." });
         return;
       }
 
-      const data = (await response.json()) as { url: string };
-      res.json({ url: data.url });
-    } catch (err) {
+      // Determine resource type
+      const isVideo = req.file.mimetype.startsWith("video/");
+      const resourceType = isVideo ? "video" : "image";
+
+      // Write buffer to temp file so Cloudinary SDK can read it
+      const ext = req.file.originalname.split(".").pop()?.toLowerCase() ?? "bin";
+      tmpPath = path.join(os.tmpdir(), `nh-upload-${Date.now()}.${ext}`);
+      fs.writeFileSync(tmpPath, req.file.buffer);
+
+      // Upload to Cloudinary
+      const result = await cloudinary.uploader.upload(tmpPath, {
+        folder: "nova-habitar",
+        resource_type: resourceType,
+        use_filename: true,
+        unique_filename: true,
+      });
+
+      res.json({ url: result.secure_url });
+    } catch (err: any) {
       console.error("[upload] Error:", err);
-      res.status(500).json({ error: "Erro interno no upload" });
+      res.status(500).json({ error: err.message ?? "Erro interno no upload" });
+    } finally {
+      if (tmpPath && fs.existsSync(tmpPath)) {
+        fs.unlinkSync(tmpPath);
+      }
     }
   });
 
@@ -90,12 +96,16 @@ async function startServer() {
     res.sendFile(path.join(staticPath, "index.html"));
   });
 
-  // In dev, Vite runs on 3000 and proxies /api to 3001
   const port = process.env.NODE_ENV === "production"
     ? (process.env.PORT || 3000)
     : 3001;
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    if (cloudinary.config().cloud_name) {
+      console.log(`Cloudinary: connected to cloud "${cloudinary.config().cloud_name}"`);
+    } else {
+      console.warn("Cloudinary: NOT configured — set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET");
+    }
   });
 }
 

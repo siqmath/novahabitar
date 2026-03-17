@@ -10,13 +10,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Pencil, Trash2, Save, X, Star, StarOff,
   FolderOpen, Clock, Mail, ArrowLeft, Image as ImageIcon,
-  Link as LinkIcon, CheckCircle
+  Link as LinkIcon, CheckCircle, Users
 } from "lucide-react";
 import {
-  projectStore, timelineStore, contactStore,
+  projectStore, timelineStore, contactStore, partnerStore, settingsStore,
   generateId, generateSlug,
   STATUS_LABELS, TYPE_LABELS,
-  type Project, type TimelineEntry, type ContactInfo,
+  type Project, type TimelineEntry, type ContactInfo, type Partner, type SiteSettings,
   type ProjectStatus, type ProjectType
 } from "@/lib/store";
 import { useLocation } from "wouter";
@@ -27,21 +27,36 @@ const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
   slug: "",
   title: "",
   location: "",
+  tagline: "",
+  taglineEn: "",
   description: "",
+  descriptionEn: "",
   shortDescription: "",
+  shortDescriptionEn: "",
   aboutText: "",
+  aboutTextEn: "",
   actuationIntro: "",
+  actuationIntroEn: "",
   differentials: [],
+  differentialsEn: [],
   techniques: [],
   images: [],
   coverIndex: 0,
+  mainImageIndex: 0,
   status: "previsto",
   type: "residencial",
   featured: false,
   typology: "",
+  typologyEn: "",
   builtArea: "",
   units: "",
   actuation: {
+    planning: "",
+    architecture: "",
+    incorporation: "",
+    construction: "",
+  },
+  actuationEn: {
     planning: "",
     architecture: "",
     incorporation: "",
@@ -52,7 +67,9 @@ const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
 const EMPTY_TIMELINE: Omit<TimelineEntry, "id" | "createdAt"> = {
   date: "",
   title: "",
+  titleEn: "",
   description: "",
+  descriptionEn: "",
   photo: "",
   link: "",
 };
@@ -121,7 +138,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-type Tab = "projects" | "timeline" | "contact";
+type Tab = "projects" | "timeline" | "contact" | "partners";
 
 export default function Admin() {
   const [, navigate] = useLocation();
@@ -136,95 +153,69 @@ export default function Admin() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#0A1420", color: "#F5F3EE" }}>
       {/* Header */}
-      <header
-        style={{
-          borderBottom: "1px solid rgba(198,166,103,0.15)",
-          padding: "1rem 2rem",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: "#0F1B2D",
-          flexWrap: "wrap",
-          gap: "0.75rem",
-        }}
-      >
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate("/pt")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "rgba(245,243,238,0.4)",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: "0.7rem",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#C6A667")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(245,243,238,0.4)")}
-          >
-            <ArrowLeft size={13} /> Site
-          </button>
-          <span style={{ color: "rgba(198,166,103,0.25)" }}>|</span>
-          <h1
-            style={{
-              fontFamily: "'Montserrat', sans-serif",
-              fontWeight: 800,
-              fontSize: "0.9rem",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "#C6A667",
-            }}
-          >
+      {/* Top bar */}
+      <div style={{ backgroundColor: "#0F1B2D", borderBottom: "1px solid rgba(198,166,103,0.1)", padding: "1rem 2rem", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
+          <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "0.85rem", letterSpacing: "0.1em", color: "#C6A667", textTransform: "uppercase" }}>
             Nova Habitar — Admin
           </h1>
-        </div>
-
-        <div className="flex gap-1 flex-wrap">
-          {(["projects", "timeline", "contact"] as Tab[]).map((t) => {
-            const labels: Record<Tab, string> = { projects: "Projetos", timeline: "Linha do Tempo", contact: "Contato" };
-            const icons: Record<Tab, React.ReactNode> = {
-              projects: <FolderOpen size={13} />,
-              timeline: <Clock size={13} />,
-              contact: <Mail size={13} />,
-            };
-            return (
+          <div style={{ width: "1px", height: "20px", backgroundColor: "rgba(198,166,103,0.2)" }} className="hidden sm:block" />
+          <nav style={{ display: "flex", gap: "1rem" }}>
+            {[
+              { id: "projects", label: "Projetos", icon: <FolderOpen size={14} /> },
+              { id: "partners", label: "Parceiros", icon: <Users size={14} /> },
+              { id: "timeline", label: "Linha do Tempo", icon: <Clock size={14} /> },
+              { id: "contact", label: "Contato", icon: <Mail size={14} /> },
+            ].map((t) => (
               <button
-                key={t}
-                onClick={() => setTab(t)}
+                key={t.id}
+                onClick={() => setTab(t.id as Tab)}
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.4rem",
-                  padding: "0.5rem 1rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
+                  background: "none",
                   border: "none",
                   cursor: "pointer",
-                  backgroundColor: tab === t ? "rgba(198,166,103,0.12)" : "transparent",
-                  color: tab === t ? "#C6A667" : "rgba(245,243,238,0.4)",
-                  borderBottom: tab === t ? "2px solid #C6A667" : "2px solid transparent",
-                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.35rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: "0.65rem",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                  color: tab === t.id ? "#C6A667" : "rgba(245,243,238,0.4)",
+                  transition: "all 0.2s ease"
                 }}
               >
-                {icons[t]} {labels[t]}
+                {t.icon} <span className="hidden md:inline">{t.label}</span>
               </button>
-            );
-          })}
+            ))}
+          </nav>
         </div>
-      </header>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              if (confirm("Resetar todos os dados para o padrão? Isso apagará suas alterações locais.")) {
+                projectStore.reset();
+                partnerStore.reset();
+                timelineStore.reset();
+                contactStore.reset();
+                window.location.reload();
+              }
+            }}
+            style={{ ...btnStyle("ghost-sm"), color: "rgba(220,80,80,0.6)", borderColor: "rgba(220,80,80,0.15)" }}
+          >
+            Resetar Tudo
+          </button>
+          <button onClick={() => navigate("/")} style={btnStyle("ghost-sm")}>
+            <ArrowLeft size={13} /> Sair
+          </button>
+        </div>
+      </div>
 
       <div className="flex-1 p-6 md:p-8 max-w-6xl w-full mx-auto">
         {tab === "projects" && <ProjectsTab showToast={showToast} />}
         {tab === "timeline" && <TimelineTab showToast={showToast} />}
+        {tab === "partners" && <PartnersTab showToast={showToast} />}
         {tab === "contact" && <ContactTab showToast={showToast} />}
       </div>
 
@@ -272,13 +263,24 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
 
   const openNew = () => {
     setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_PROJECT });
-    setForm({ ...EMPTY_PROJECT });
+    setForm({ ...EMPTY_PROJECT, tagline: "", taglineEn: "" });
     setImageInput(""); setTagInput("");
   };
 
   const openEdit = (p: Project) => {
     setEditing(p);
-    setForm({ ...p });
+    setForm({
+      ...p,
+      tagline: p.tagline ?? "",
+      taglineEn: p.taglineEn ?? "",
+      descriptionEn: p.descriptionEn ?? "",
+      shortDescriptionEn: p.shortDescriptionEn ?? "",
+      aboutTextEn: p.aboutTextEn ?? "",
+      actuationIntroEn: p.actuationIntroEn ?? "",
+      differentialsEn: p.differentialsEn ?? [],
+      typologyEn: p.typologyEn ?? "",
+      actuationEn: p.actuationEn ?? { planning: "", architecture: "", incorporation: "", construction: "" }
+    });
     setImageInput(""); setTagInput("");
   };
 
@@ -305,8 +307,8 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
   };
 
   const addImage = () => {
-    if (!imageInput.trim() || form.images.length >= 5) return;
-    setForm((f) => ({ ...f, images: [...f.images, imageInput.trim()] }));
+    if (!imageInput.trim() || form.images.length >= 15) return;
+    setForm((f) => ({ ...f, images: [...f.images, { url: imageInput.trim(), type: "image" }] }));
     setImageInput("");
   };
 
@@ -315,6 +317,7 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
       ...f,
       images: f.images.filter((_, idx) => idx !== i),
       coverIndex: f.coverIndex === i ? 0 : f.coverIndex > i ? f.coverIndex - 1 : f.coverIndex,
+      mainImageIndex: f.mainImageIndex === i ? 0 : f.mainImageIndex > i ? f.mainImageIndex - 1 : f.mainImageIndex,
     }));
   };
 
@@ -348,6 +351,12 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
               onChange={(e) => setForm({ ...form, location: e.target.value })}
               placeholder="Cidade — Bairro" />
           </Field>
+          <Field label="Slogan / Tagline (PT)">
+            <input style={inputCls} value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} placeholder="Ex: O melhor da região" />
+          </Field>
+          <Field label="Slogan / Tagline (EN)">
+            <input style={inputCls} value={form.taglineEn} onChange={(e) => setForm({ ...form, taglineEn: e.target.value })} placeholder="Ex: The best in the region" />
+          </Field>
           <Field label="Status">
             <select style={{ ...inputCls, cursor: "pointer" }} value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as ProjectStatus })}>
@@ -364,10 +373,15 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
               ))}
             </select>
           </Field>
-          <Field label="Tipologia">
+          <Field label="Tipologia (PT)">
             <input style={inputCls} value={form.typology}
               onChange={(e) => setForm({ ...form, typology: e.target.value })}
               placeholder="Ex: Apartamentos 2 e 3 quartos" />
+          </Field>
+          <Field label="Tipologia (EN)">
+            <input style={inputCls} value={form.typologyEn}
+              onChange={(e) => setForm({ ...form, typologyEn: e.target.value })}
+              placeholder="Ex: 2 and 3 bedroom apartments" />
           </Field>
           <Field label="Área construída">
             <input style={inputCls} value={form.builtArea}
@@ -398,54 +412,118 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
           </Field>
 
           <div className="md:col-span-2">
-            <Field label="Descrição curta (cards e listagem)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Resumo para cards e listagem" />
-            </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Descrição curta (PT - cards)">
+                <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Resumo em português" />
+              </Field>
+              <Field label="Descrição curta (EN - cards)">
+                <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                  value={form.descriptionEn}
+                  onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })}
+                  placeholder="Summary in English" />
+              </Field>
+            </div>
           </div>
           <div className="md:col-span-2">
-            <Field label="Subtítulo / Tagline (hero da página do projeto)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
-                value={form.shortDescription}
-                onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
-                placeholder="Uma frase de impacto para o hero da página do projeto" />
-            </Field>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Field label="Tagline / Subtítulo (PT - Hero)">
+                <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                  value={form.shortDescription}
+                  onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+                  placeholder="Subtítulo em português" />
+              </Field>
+              <Field label="Tagline / Subtítulo (EN - Hero)">
+                <textarea style={{ ...inputCls, resize: "vertical" }} rows={2}
+                  value={form.shortDescriptionEn}
+                  onChange={(e) => setForm({ ...form, shortDescriptionEn: e.target.value })}
+                  placeholder="Tagline in English" />
+              </Field>
+            </div>
           </div>
           <div className="md:col-span-2">
-            <Field label="Sobre o projeto (texto longo — use linha em branco para separar parágrafos)">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={5}
-                value={form.aboutText}
-                onChange={(e) => setForm({ ...form, aboutText: e.target.value })}
-                placeholder="Texto detalhado sobre o projeto. Separe parágrafos com linha em branco." />
-            </Field>
+             <Field label="Sobre o projeto (PT)">
+               <textarea style={{ ...inputCls, resize: "vertical" }} rows={4}
+                 value={form.aboutText}
+                 onChange={(e) => setForm({ ...form, aboutText: e.target.value })} />
+             </Field>
+          </div>
+          <div className="md:col-span-2">
+             <Field label="Sobre o projeto (EN)">
+               <textarea style={{ ...inputCls, resize: "vertical" }} rows={4}
+                 value={form.aboutTextEn}
+                 onChange={(e) => setForm({ ...form, aboutTextEn: e.target.value })} />
+             </Field>
           </div>
 
 
-          {/* Images — FileUpload grid (up to 5 slots) */}
+          {/* Images — FileUpload grid (up to 15 slots) */}
           <div className="md:col-span-2">
-            <label style={labelCls}>Mídia do Projeto (até 5 — clique para definir como capa)</label>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "0.75rem", marginTop: "0.5rem" }}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <FileUpload
-                  key={i}
-                  value={form.images[i]}
-                  isCover={i === form.coverIndex}
-                  onSetCover={form.images[i] ? () => setForm({ ...form, coverIndex: i }) : undefined}
-                  onUpload={(url) => {
-                    const imgs = [...form.images];
-                    imgs[i] = url;
-                    // Fill any gaps with empty strings
-                    while (imgs.length <= i) imgs.push("");
-                    setForm({ ...form, images: imgs.filter((_, idx) => idx <= i || imgs[idx]) });
-                  }}
-                  onRemove={() => {
-                    const imgs = form.images.filter((_, idx) => idx !== i);
-                    setForm({ ...form, images: imgs, coverIndex: form.coverIndex === i ? 0 : form.coverIndex > i ? form.coverIndex - 1 : form.coverIndex });
-                  }}
-                />
-              ))}
+            <label style={labelCls}>Mídia do Projeto (até 15)</label>
+            <div style={{ display: "flex", gap: "1rem", marginBottom: "0.5rem" }}>
+              <span style={{ fontSize: "0.65rem", color: "rgba(245,243,238,0.5)" }}>⭐️ define a capa (Hero)</span>
+              <span style={{ fontSize: "0.65rem", color: "rgba(245,243,238,0.5)" }}>🏠 define a miniatura (Home)</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "1rem", paddingBottom: "2rem" }}>
+              {Array.from({ length: 15 }).map((_, i) => {
+                const media = form.images[i];
+                const mediaUrl = media?.url;
+                return (
+                  <div key={i} style={{ backgroundColor: "rgba(245,243,238,0.02)", border: "1px solid rgba(198,166,103,0.12)", padding: "0.75rem" }}>
+                    <div style={{ position: "relative", marginBottom: "0.5rem" }}>
+                  <FileUpload
+                    value={mediaUrl}
+                    onUpload={(url) => {
+                      const type = /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url) ? "video" : "image";
+                      const imgs = [...form.images];
+                      while (imgs.length <= i) imgs.push({ url: "", type: "image" });
+                      imgs[i] = { ...imgs[i], url, type };
+                      setForm({ ...form, images: imgs.filter((img, idx) => idx <= i || img?.url) });
+                    }}
+                    onRemove={() => {
+                      const imgs = form.images.filter((_, idx) => idx !== i);
+                      setForm({
+                        ...form,
+                        images: imgs,
+                        coverIndex: form.coverIndex === i ? 0 : form.coverIndex > i ? form.coverIndex - 1 : form.coverIndex,
+                        mainImageIndex: form.mainImageIndex === i ? 0 : form.mainImageIndex > i ? form.mainImageIndex - 1 : form.mainImageIndex
+                      });
+                    }}
+                  />
+                  </div>
+                    {mediaUrl && (
+                      <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <button onClick={(e) => { e.preventDefault(); setForm({ ...form, coverIndex: i }) }} style={{ background: "none", border: "none", color: i === form.coverIndex ? "#C6A667" : "rgba(245,243,238,0.3)", cursor: "pointer", fontSize: "0.8rem" }}>⭐️ Capa</button>
+                          <button onClick={(e) => { e.preventDefault(); if(form.images[i].type === 'image') setForm({ ...form, mainImageIndex: i }); else showToast("Miniatura deve ser imagem!"); }} style={{ background: "none", border: "none", color: i === form.mainImageIndex ? "#3b82f6" : "rgba(245,243,238,0.3)", cursor: "pointer", fontSize: "0.8rem" }}>🏠 Home</button>
+                        </div>
+                        <input style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem" }} value={media.title || ""} placeholder="Título (PT)" onChange={(e) => {
+                          const imgs = [...form.images];
+                          imgs[i] = { ...imgs[i], title: e.target.value };
+                          setForm({ ...form, images: imgs });
+                        }} />
+                        <input style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem" }} value={media.titleEn || ""} placeholder="Título (EN)" onChange={(e) => {
+                          const imgs = [...form.images];
+                          imgs[i] = { ...imgs[i], titleEn: e.target.value };
+                          setForm({ ...form, images: imgs });
+                        }} />
+                        <textarea rows={2} style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem", resize: "vertical" }} value={media.description || ""} placeholder="Descrição (PT)" onChange={(e) => {
+                          const imgs = [...form.images];
+                          imgs[i] = { ...imgs[i], description: e.target.value };
+                          setForm({ ...form, images: imgs });
+                        }} />
+                        <textarea rows={2} style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem", resize: "vertical" }} value={media.descriptionEn || ""} placeholder="Descrição (EN)" onChange={(e) => {
+                          const imgs = [...form.images];
+                          imgs[i] = { ...imgs[i], descriptionEn: e.target.value };
+                          setForm({ ...form, images: imgs });
+                        }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -525,8 +603,8 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
           <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
             style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", border: "1px solid rgba(198,166,103,0.12)", backgroundColor: "rgba(245,243,238,0.02)" }}>
             <div style={{ width: "56px", height: "42px", flexShrink: 0, overflow: "hidden", border: "1px solid rgba(198,166,103,0.15)", backgroundColor: "rgba(245,243,238,0.03)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {p.images[p.coverIndex] ? (
-                <img src={p.images[p.coverIndex]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {p.images[p.mainImageIndex]?.url ? (
+                <img src={p.images[p.mainImageIndex].url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <ImageIcon size={16} style={{ color: "rgba(198,166,103,0.3)" }} />
               )}
@@ -567,8 +645,15 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [editing, setEditing] = useState<TimelineEntry | null>(null);
   const [form, setForm] = useState<Omit<TimelineEntry, "id" | "createdAt">>(EMPTY_TIMELINE);
+  const [historyPageVisible, setHistoryPageVisible] = useState(true);
+  const [subtitleForm, setSubtitleForm] = useState({ pt: "", en: "" });
 
-  useEffect(() => { setEntries(timelineStore.getAll()); }, []);
+  useEffect(() => { 
+    setEntries(timelineStore.getAll()); 
+    const s = settingsStore.get();
+    setHistoryPageVisible(s.historyPageVisible);
+    setSubtitleForm({ pt: s.historySubtitle || "", en: s.historySubtitleEn || "" });
+  }, []);
 
   const openNew = () => {
     setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_TIMELINE });
@@ -577,7 +662,15 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
 
   const openEdit = (e: TimelineEntry) => {
     setEditing(e);
-    setForm({ date: e.date, title: e.title, description: e.description, photo: e.photo ?? "", link: e.link ?? "" });
+    setForm({ 
+      date: e.date, 
+      title: e.title, 
+      titleEn: e.titleEn ?? "",
+      description: e.description, 
+      descriptionEn: e.descriptionEn ?? "",
+      photo: e.photo ?? "", 
+      link: e.link ?? "" 
+    });
   };
 
   const handleSave = () => {
@@ -611,12 +704,20 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
           <Field label="Data *">
             <input style={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="Ex: 2024 ou Mar 2023" />
           </Field>
-          <Field label="Título *">
-            <input style={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Título do marco" />
-          </Field>
-          <div className="md:col-span-2">
-            <Field label="Descrição">
-              <textarea style={{ ...inputCls, resize: "vertical" }} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Descrição do evento" />
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field label="Título (PT) *">
+              <input style={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Título do marco em português" />
+            </Field>
+            <Field label="Título (EN)">
+              <input style={inputCls} value={form.titleEn} onChange={(e) => setForm({ ...form, titleEn: e.target.value })} placeholder="Título do marco em inglês" />
+            </Field>
+          </div>
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Field label="Descrição (PT)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Descrição do evento em português" />
+            </Field>
+            <Field label="Descrição (EN)">
+              <textarea style={{ ...inputCls, resize: "vertical" }} rows={3} value={form.descriptionEn} onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })} placeholder="Descrição do evento em inglês" />
             </Field>
           </div>
           <div className="md:col-span-2">
@@ -639,14 +740,48 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
     );
   }
 
+  const handleToggleVisibility = () => {
+    const newVal = !historyPageVisible;
+    setHistoryPageVisible(newVal);
+    const settings = settingsStore.get();
+    settingsStore.save({ ...settings, historyPageVisible: newVal });
+    showToast(newVal ? "Página 'Nossa História' ativada!" : "Página 'Nossa História' desativada!");
+  };
+
+  const handleSaveSubtitles = () => {
+    const settings = settingsStore.get();
+    settingsStore.save({ ...settings, historySubtitle: subtitleForm.pt, historySubtitleEn: subtitleForm.en });
+    showToast("Configurações da Linha do Tempo salvas!");
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
-          Linha do Tempo ({entries.length})
-        </h2>
+        <div className="flex items-center gap-4">
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+            Linha do Tempo ({entries.length})
+          </h2>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem", color: "rgba(245,243,238,0.6)" }}>
+            <input type="checkbox" checked={historyPageVisible} onChange={handleToggleVisibility} />
+            Página visível no site
+          </label>
+        </div>
         <button onClick={openNew} style={btnStyle("gold")}><Plus size={14} /> Nova entrada</button>
       </div>
+
+      <div style={{ backgroundColor: "rgba(245,243,238,0.02)", border: "1px solid rgba(198,166,103,0.15)", padding: "1.25rem", marginBottom: "2.5rem" }} className="flex flex-col gap-4 max-w-2xl">
+        <h3 style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.85rem", fontWeight: 700, color: "#C6A667", textTransform: "uppercase", letterSpacing: "0.05em" }}>Textos da Seção "Nossa História"</h3>
+        <Field label="Subtítulo da Seção (PT)">
+          <textarea style={{ ...inputCls, resize: "vertical" }} rows={2} value={subtitleForm.pt} onChange={(e) => setSubtitleForm({ ...subtitleForm, pt: e.target.value })} placeholder="Ex: A trajetória da Nova Habitar..." />
+        </Field>
+        <Field label="Subtítulo da Seção (EN)">
+          <textarea style={{ ...inputCls, resize: "vertical" }} rows={2} value={subtitleForm.en} onChange={(e) => setSubtitleForm({ ...subtitleForm, en: e.target.value })} placeholder="Ex: The trajectory of Nova Habitar..." />
+        </Field>
+        <div className="flex justify-end mt-2">
+          <button onClick={handleSaveSubtitles} style={btnStyle("gold")}><Save size={14} /> Salvar Textos</button>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3">
         {entries.map((e) => (
           <div key={e.id} style={{ display: "flex", alignItems: "flex-start", gap: "1rem", padding: "1rem 1.25rem", border: "1px solid rgba(198,166,103,0.12)", backgroundColor: "rgba(245,243,238,0.02)" }}>
@@ -718,6 +853,265 @@ function ContactTab({ showToast }: { showToast: (m: string) => void }) {
               placeholder={placeholder} />
           </Field>
         ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Partners Tab ───────────────────────────────────────────────────────────
+
+function PartnersTab({ showToast }: { showToast: (m: string) => void }) {
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [editing, setEditing] = useState<Partner | null>(null);
+  const [form, setForm] = useState<Omit<Partner, "id" | "createdAt">>({ slug: "", name: "", logo: "", actuation: "", actuationEn: "", shortDescription: "", shortDescriptionEn: "", fullDescription: "", fullDescriptionEn: "", differentials: [], differentialsEn: [], website: "", active: true, featured: false, order: 0, gallery: [] });
+
+  useEffect(() => { setPartners(partnerStore.getAll()); }, []);
+
+  const openNew = () => {
+    setEditing({ id: generateId(), createdAt: new Date().toISOString(), slug: "", name: "", logo: "", actuation: "", actuationEn: "", shortDescription: "", shortDescriptionEn: "", fullDescription: "", fullDescriptionEn: "", differentials: [], differentialsEn: [], website: "", active: true, featured: true, order: partners.length, gallery: [] });
+    setForm({ slug: "", name: "", logo: "", actuation: "", actuationEn: "", shortDescription: "", shortDescriptionEn: "", fullDescription: "", fullDescriptionEn: "", differentials: [], differentialsEn: [], website: "", active: true, featured: true, order: partners.length, gallery: [] });
+  };
+
+  const openEdit = (p: Partner) => {
+    setEditing(p);
+    setForm({
+      ...p,
+      actuationEn: p.actuationEn ?? "",
+      shortDescription: p.shortDescription ?? "",
+      shortDescriptionEn: p.shortDescriptionEn ?? "",
+      fullDescription: p.fullDescription ?? "",
+      fullDescriptionEn: p.fullDescriptionEn ?? "",
+      differentials: p.differentials ?? [],
+      differentialsEn: p.differentialsEn ?? [],
+      website: p.website ?? "",
+      gallery: p.gallery || []
+    });
+  };
+
+  const handleSave = () => {
+    if (!editing) return;
+    const slug = form.slug || generateSlug(form.name);
+    partnerStore.save({ ...editing, ...form, slug });
+    setPartners(partnerStore.getAll());
+    setEditing(null);
+    showToast("Parceiro salvo!");
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("Excluir este parceiro?")) return;
+    partnerStore.delete(id);
+    setPartners(partnerStore.getAll());
+    showToast("Parceiro excluído.");
+  };
+
+  if (editing) {
+    return (
+      <div>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+            {form.name || "Novo Parceiro"}
+          </h2>
+          <div className="flex gap-2">
+            <button onClick={() => setEditing(null)} style={btnStyle("ghost")}><X size={14} /> Cancelar</button>
+            <button onClick={handleSave} style={btnStyle("gold")}><Save size={14} /> Salvar</button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl">
+          <Field label="Nome da Empresa *">
+            <input style={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Caixa Econômica" />
+          </Field>
+          <Field label="Área de Atuação (PT)">
+            <input style={inputCls} value={form.actuation} onChange={(e) => setForm({ ...form, actuation: e.target.value })} placeholder="Ex: Financiamento Imobiliário" />
+          </Field>
+          <Field label="Área de Atuação (EN)">
+            <input style={inputCls} value={form.actuationEn} onChange={(e) => setForm({ ...form, actuationEn: e.target.value })} placeholder="Ex: Real Estate Financing" />
+          </Field>
+          <div className="md:col-span-2">
+            <label style={labelCls}>Logo do Parceiro</label>
+            <div style={{ maxWidth: "280px", marginTop: "0.4rem" }}>
+              <FileUpload
+                value={form.logo || undefined}
+                accept="image/*"
+                onUpload={(url) => setForm({ ...form, logo: url })}
+                onRemove={() => setForm({ ...form, logo: "" })}
+              />
+            </div>
+            {form.logo && (
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.65rem", color: "rgba(198,166,103,0.7)", marginTop: "0.4rem" }}>
+                ✓ URL: {form.logo.substring(0, 60)}...
+              </p>
+            )}
+          </div>
+
+          <Field label="Descrição Curta (PT)">
+            <textarea rows={2} style={{ ...inputCls, resize: "vertical" }} value={form.shortDescription || ""} onChange={(e) => setForm({ ...form, shortDescription: e.target.value })} placeholder="Ex: Maior banco de crédito imobiliário do Brasil..." />
+          </Field>
+          <Field label="Descrição Curta (EN)">
+            <textarea rows={2} style={{ ...inputCls, resize: "vertical" }} value={form.shortDescriptionEn || ""} onChange={(e) => setForm({ ...form, shortDescriptionEn: e.target.value })} placeholder="Ex: Largest real estate credit bank in Brazil..." />
+          </Field>
+          <Field label="Website">
+            <input style={inputCls} value={form.website || ""} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://" />
+          </Field>
+          <div className="md:col-span-2">
+            <Field label="Descrição Completa (PT)">
+              <textarea rows={4} style={{ ...inputCls, resize: "vertical" }} value={form.fullDescription || ""} onChange={(e) => setForm({ ...form, fullDescription: e.target.value })} placeholder="texto completo sobre o parceiro..." />
+            </Field>
+          </div>
+          <div className="md:col-span-2">
+            <Field label="Descrição Completa (EN)">
+              <textarea rows={4} style={{ ...inputCls, resize: "vertical" }} value={form.fullDescriptionEn || ""} onChange={(e) => setForm({ ...form, fullDescriptionEn: e.target.value })} placeholder="full text about the partner..." />
+            </Field>
+          </div>
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label style={labelCls}>Diferenciais (PT - um por linha)</label>
+              <textarea
+                rows={4}
+                style={{ ...inputCls, resize: "vertical", marginTop: "0.4rem" }}
+                value={(form.differentials || []).join("\n")}
+                onChange={(e) => setForm({ ...form, differentials: e.target.value.split("\n").filter(Boolean) })}
+                placeholder={"Agilidade\nQualidade\n..."}
+              />
+            </div>
+            <div>
+              <label style={labelCls}>Diferenciais (EN - um por linha)</label>
+              <textarea
+                rows={4}
+                style={{ ...inputCls, resize: "vertical", marginTop: "0.4rem" }}
+                value={(form.differentialsEn || []).join("\n")}
+                onChange={(e) => setForm({ ...form, differentialsEn: e.target.value.split("\n").filter(Boolean) })}
+                placeholder={"Agility\nQuality\n..."}
+              />
+            </div>
+          </div>
+
+          <div className="md:col-span-2">
+            <label style={labelCls}>Galeria do Parceiro (até 15 itens) — imagens e vídeos com título e descrição</label>
+            <div style={{ fontSize: "0.65rem", color: "rgba(245,243,238,0.5)", marginBottom: "0.75rem" }}>Suporta imagens (JPG, PNG, WEBP) e vídeos (MP4, WEBM)</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "0.75rem", paddingBottom: "2rem" }}>
+              {Array.from({ length: 15 }).map((_, i) => {
+                const galleryList = form.gallery || [];
+                const mediaUrl = galleryList[i]?.url;
+                const title = galleryList[i]?.title || "";
+                const titleEn = galleryList[i]?.titleEn || "";
+                const description = galleryList[i]?.description || "";
+                const descriptionEn = galleryList[i]?.descriptionEn || "";
+                return (
+                  <div key={i} style={{ backgroundColor: "rgba(245,243,238,0.02)", border: "1px solid rgba(198,166,103,0.12)", padding: "0.75rem" }}>
+                    <div style={{ marginBottom: "0.5rem" }}>
+                      <FileUpload
+                        value={mediaUrl}
+                        onUpload={(url) => {
+                          const imgs = [...galleryList];
+                          const type = /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url) ? "video" : "image";
+                          while (imgs.length <= i) imgs.push(undefined as any);
+                          imgs[i] = { url, type, title, titleEn, description, descriptionEn };
+                          setForm({ ...form, gallery: imgs.filter(Boolean) });
+                        }}
+                        onRemove={() => {
+                          const imgs = galleryList.filter((_, idx) => idx !== i);
+                          setForm({ ...form, gallery: imgs });
+                        }}
+                      />
+                    </div>
+                    {mediaUrl && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                        <input
+                          style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem" }}
+                          value={title}
+                          placeholder="Título (PT)"
+                          onChange={(e) => {
+                            const imgs = [...galleryList];
+                            if (imgs[i]) { imgs[i] = { ...imgs[i], title: e.target.value }; setForm({ ...form, gallery: imgs }); }
+                          }}
+                        />
+                        <input
+                          style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem" }}
+                          value={titleEn}
+                          placeholder="Título (EN)"
+                          onChange={(e) => {
+                            const imgs = [...galleryList];
+                            if (imgs[i]) { imgs[i] = { ...imgs[i], titleEn: e.target.value }; setForm({ ...form, gallery: imgs }); }
+                          }}
+                        />
+                        <textarea
+                          rows={2}
+                          style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem", resize: "vertical" }}
+                          value={description}
+                          placeholder="Descrição (PT)"
+                          onChange={(e) => {
+                            const imgs = [...galleryList];
+                            if (imgs[i]) { imgs[i] = { ...imgs[i], description: e.target.value }; setForm({ ...form, gallery: imgs }); }
+                          }}
+                        />
+                        <textarea
+                          rows={2}
+                          style={{ ...inputCls, fontSize: "0.7rem", padding: "0.3rem", resize: "vertical" }}
+                          value={descriptionEn}
+                          placeholder="Descrição (EN)"
+                          onChange={(e) => {
+                            const imgs = [...galleryList];
+                            if (imgs[i]) { imgs[i] = { ...imgs[i], descriptionEn: e.target.value }; setForm({ ...form, gallery: imgs }); }
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <Field label="Status">
+             <div className="flex gap-4 mt-2">
+               <label className="flex items-center gap-2" style={{ fontSize: "0.8rem", color: "rgba(245,243,238,0.8)" }}>
+                 <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} /> Ativo
+               </label>
+               <label className="flex items-center gap-2" style={{ fontSize: "0.8rem", color: "rgba(245,243,238,0.8)" }}>
+                 <input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> Destaque
+               </label>
+             </div>
+          </Field>
+          <Field label="Ordem">
+            <input type="number" style={inputCls} value={form.order} onChange={(e) => setForm({ ...form, order: Number(e.target.value) })} />
+          </Field>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+        <h2 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.1rem", color: "#C6A667" }}>
+          Parceiros ({partners.length})
+        </h2>
+        <button onClick={openNew} style={btnStyle("gold")}><Plus size={14} /> Novo parceiro</button>
+      </div>
+      <div className="flex flex-col gap-3">
+        {partners.map((p) => (
+          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem 1.25rem", border: "1px solid rgba(198,166,103,0.12)", backgroundColor: "rgba(245,243,238,0.02)" }}>
+            {p.logo ? (
+              <img src={p.logo} alt="" style={{ width: "48px", height: "48px", objectFit: "contain", backgroundColor: "#fff", padding: "4px", borderRadius: "4px" }} />
+            ) : (
+              <div style={{ width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(245,243,238,0.05)", borderRadius: "4px", color: "rgba(245,243,238,0.3)", fontSize: "0.7rem", textAlign: "center", wordBreak: "break-all" }}>S/ LOGO</div>
+            )}
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 700, fontSize: "0.875rem", color: "#F5F3EE" }}>{p.name}</div>
+              <div style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem", color: "rgba(245,243,238,0.4)" }}>{p.actuation || "—"}</div>
+            </div>
+            <div className="flex items-center gap-3">
+               <span style={{ fontSize: "0.7rem", color: p.active ? "#22c55e" : "rgba(245,243,238,0.4)" }}>{p.active ? "ATIVO" : "INATIVO"}</span>
+               <span style={{ fontSize: "0.7rem", color: p.featured ? "#C6A667" : "rgba(245,243,238,0.4)" }}>{p.featured ? "DESTAQUE" : ""}</span>
+              <button onClick={() => openEdit(p)} style={btnStyle("ghost-sm")}><Pencil size={13} /></button>
+              <button onClick={() => handleDelete(p.id)} style={btnStyle("danger-sm")}><Trash2 size={13} /></button>
+            </div>
+          </div>
+        ))}
+        {partners.length === 0 && (
+          <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.85rem", color: "rgba(245,243,238,0.3)", textAlign: "center", padding: "3rem" }}>
+            Nenhum parceiro cadastrado.
+          </p>
+        )}
       </div>
     </div>
   );
