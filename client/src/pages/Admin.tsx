@@ -136,12 +136,29 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+// ── Auth helpers ───────────────────────────────────────────────────────────
+
+const ADMIN_USER_HASH = "b394991b5d12c2da81d145cb206fe86c87a6661722a8ed1a4f23128b608e5cf2"; // novahabitaradmin
+const ADMIN_PASS_HASH = "418ab333e75ebb040ba9b4c03d35491175257b4567c2f410881e9be732abf552"; // antifragil
+
+async function hashStr(str: string) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 // ── Main component ─────────────────────────────────────────────────────────
 
 type Tab = "projects" | "timeline" | "contact" | "partners";
 
 export default function Admin() {
   const [, navigate] = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(() => sessionStorage.getItem("nh_admin_auth") === "true");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   const [tab, setTab] = useState<Tab>("projects");
   const [toast, setToast] = useState<string | null>(null);
 
@@ -149,6 +166,87 @@ export default function Admin() {
     setToast(msg);
     setTimeout(() => setToast(null), 2800);
   };
+
+  if (!isAuthenticated) {
+    const handleLogin = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoginError("");
+      const userHash = await hashStr(username);
+      const passHash = await hashStr(password);
+      
+      if (userHash === ADMIN_USER_HASH && passHash === ADMIN_PASS_HASH) {
+        sessionStorage.setItem("nh_admin_auth", "true");
+        setIsAuthenticated(true);
+      } else {
+        setLoginError("Usuário ou senha incorretos.");
+      }
+    };
+
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4" style={{ backgroundColor: "#0A1420", color: "#F5F3EE" }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }} 
+          animate={{ opacity: 1, y: 0 }}
+          style={{ 
+            backgroundColor: "#0F1B2D", 
+            padding: "2.5rem 2rem", 
+            border: "1px solid rgba(198,166,103,0.15)",
+            width: "100%", 
+            maxWidth: "360px",
+            display: "flex", 
+            flexDirection: "column",
+            gap: "1.5rem"
+          }}
+        >
+          <div className="text-center">
+            <h1 style={{ fontFamily: "'Montserrat', sans-serif", fontWeight: 800, fontSize: "1.2rem", letterSpacing: "0.1em", color: "#C6A667", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+              Acesso Restrito
+            </h1>
+            <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem", color: "rgba(245,243,238,0.5)" }}>
+              Insira suas credenciais para continuar
+            </p>
+          </div>
+          
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <Field label="Usuário">
+              <input 
+                type="text" 
+                style={inputCls} 
+                value={username} 
+                onChange={e => setUsername(e.target.value)} 
+                placeholder="admin"
+                autoComplete="username"
+              />
+            </Field>
+            <Field label="Senha">
+              <input 
+                type="password" 
+                style={inputCls} 
+                value={password} 
+                onChange={e => setPassword(e.target.value)} 
+                placeholder="••••••••"
+                autoComplete="current-password"
+              />
+            </Field>
+            
+            {loginError && (
+              <p style={{ fontFamily: "'Montserrat', sans-serif", fontSize: "0.75rem", color: "rgba(220,80,80,0.8)", textAlign: "center", fontWeight: 600 }}>
+                {loginError}
+              </p>
+            )}
+            
+            <button type="submit" style={{ ...btnStyle("gold"), width: "100%", justifyContent: "center", padding: "0.75rem" }}>
+              Entrar
+            </button>
+          </form>
+          
+          <button onClick={() => navigate("/")} style={{ ...btnStyle("ghost-sm"), margin: "0 auto", marginTop: "1rem", color: "rgba(245,243,238,0.3)", border: "none" }}>
+            <ArrowLeft size={12} /> Voltar ao site
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: "#0A1420", color: "#F5F3EE" }}>
@@ -206,7 +304,11 @@ export default function Admin() {
           >
             Resetar Tudo
           </button>
-          <button onClick={() => navigate("/")} style={btnStyle("ghost-sm")}>
+          <button onClick={() => {
+            sessionStorage.removeItem("nh_admin_auth");
+            setIsAuthenticated(false);
+            navigate("/");
+          }} style={btnStyle("ghost-sm")}>
             <ArrowLeft size={13} /> Sair
           </button>
         </div>
