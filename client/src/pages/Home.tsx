@@ -74,6 +74,7 @@ export default function Home() {
 
   const [partners, setPartners] = useState<Partner[]>([]);
   const [contact, setContact] = useState<ContactInfo | null>(null);
+  const [marqueeDir, setMarqueeDir] = useState<"normal" | "reverse" | "paused">("normal");
 
   useEffect(() => {
     const featured = partnerStore.getFeatured();
@@ -217,9 +218,26 @@ export default function Home() {
             </div>
           </div>
           
-          {/* Marquee Wrapper — High duplication for small partner lists */}
-          <div className="group relative flex overflow-hidden py-16 [--gap:3.5rem] [gap:var(--gap)] [--duration:60s]">
-            <div className="flex shrink-0 [gap:var(--gap)] animate-marquee group-hover:[animation-play-state:paused]">
+          {/* Marquee Wrapper */}
+          <div 
+            className="relative flex overflow-hidden py-16 [--gap:3.5rem] [gap:var(--gap)] [--duration:60s]"
+            onMouseMove={(e) => {
+              const { width, left } = e.currentTarget.getBoundingClientRect();
+              const ratio = (e.clientX - left) / width;
+              if (ratio > 0.15 && ratio < 0.85) {
+                setMarqueeDir("paused");
+              } else {
+                setMarqueeDir("normal");
+              }
+            }}
+            onMouseLeave={() => setMarqueeDir("normal")}
+          >
+            <div 
+              className="flex shrink-0 [gap:var(--gap)] animate-marquee"
+              style={{
+                animationPlayState: marqueeDir === "paused" ? "paused" : "running"
+              }}
+            >
               {/* Multiply the list to ensure the screen is ALWAYS overflowed, even with 1-2 partners */}
               {[...Array(12)].map((_, setIndex) => (
                 partners.map((p) => (
@@ -249,7 +267,7 @@ export default function Home() {
                       const content = e.currentTarget.querySelector('.partner-content') as HTMLElement;
                       if (content) content.style.opacity = "1";
                       const logo = e.currentTarget.querySelector('.partner-logo') as HTMLElement;
-                      if (logo) { logo.style.opacity = "1"; logo.style.filter = "grayscale(0%)"; }
+                      if (logo) { logo.style.opacity = "1"; logo.style.filter = "grayscale(0%)"; logo.style.transform = "scale(1) translateY(0)"; }
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.backgroundColor = "transparent";
@@ -259,7 +277,7 @@ export default function Home() {
                       const content = e.currentTarget.querySelector('.partner-content') as HTMLElement;
                       if (content) content.style.opacity = "0";
                       const logo = e.currentTarget.querySelector('.partner-logo') as HTMLElement;
-                      if (logo) { logo.style.opacity = "0.5"; logo.style.filter = "grayscale(100%)"; }
+                      if (logo) { logo.style.opacity = "1"; logo.style.filter = "grayscale(100%)"; logo.style.transform = "scale(2.5) translateY(26px)"; }
                     }}
                   >
                     {/* Logo Section */}
@@ -274,12 +292,13 @@ export default function Home() {
                             maxHeight: "100%", 
                             objectFit: "contain", 
                             filter: "grayscale(100%)", 
-                            opacity: 0.5, 
-                            transition: "all 0.4s ease" 
+                            opacity: 1, 
+                            transform: "scale(2.5) translateY(26px)",
+                            transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" 
                           }}
                         />
                       ) : (
-                        <span className="partner-logo" style={{ fontSize: "1.5rem", fontWeight: 800, color: "#C6A667", opacity: 0.2 }}>NH</span>
+                        <span className="partner-logo" style={{ fontSize: "1.5rem", fontWeight: 800, color: "#C6A667", opacity: 1, filter: "grayscale(100%)", transform: "scale(2.5) translateY(26px)", transition: "all 0.5s cubic-bezier(0.16, 1, 0.3, 1)" }}>NH</span>
                       )}
                     </div>
 

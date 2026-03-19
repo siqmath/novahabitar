@@ -640,13 +640,13 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
                     if (e.key === "Enter") {
                       const val = ((form as any)._diffInput ?? "").trim();
                       if (val) {
-                        setForm({ ...form, differentials: [...(form.differentials ?? []), val], ...(form as any), _diffInput: "" } as any);
+                        setForm({ ...form, differentials: [...(form.differentials ?? []), val], _diffInput: "" } as any);
                       }
                     }
                   }} />
                 <button onClick={() => {
                   const val = ((form as any)._diffInput ?? "").trim();
-                  if (val) setForm({ ...form, differentials: [...(form.differentials ?? []), val], ...(form as any), _diffInput: "" } as any);
+                  if (val) setForm({ ...form, differentials: [...(form.differentials ?? []), val], _diffInput: "" } as any);
                 }} style={btnStyle("ghost-sm")}><Plus size={14} /></button>
               </div>
               <div className="flex flex-col gap-1 mt-1">
@@ -1071,7 +1071,7 @@ function PartnersTab({ showToast }: { showToast: (m: string) => void }) {
                 rows={4}
                 style={{ ...inputCls, resize: "vertical", marginTop: "0.4rem" }}
                 value={(form.differentials || []).join("\n")}
-                onChange={(e) => setForm({ ...form, differentials: e.target.value.split("\n").filter(Boolean) })}
+                onChange={(e) => setForm({ ...form, differentials: e.target.value.split("\n") })}
                 placeholder={"Agilidade\nQualidade\n..."}
               />
             </div>
@@ -1081,7 +1081,7 @@ function PartnersTab({ showToast }: { showToast: (m: string) => void }) {
                 rows={4}
                 style={{ ...inputCls, resize: "vertical", marginTop: "0.4rem" }}
                 value={(form.differentialsEn || []).join("\n")}
-                onChange={(e) => setForm({ ...form, differentialsEn: e.target.value.split("\n").filter(Boolean) })}
+                onChange={(e) => setForm({ ...form, differentialsEn: e.target.value.split("\n") })}
                 placeholder={"Agility\nQuality\n..."}
               />
             </div>
