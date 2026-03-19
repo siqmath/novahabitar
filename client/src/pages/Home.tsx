@@ -220,7 +220,7 @@ export default function Home() {
           
           {/* Marquee Wrapper */}
           <div 
-            className="relative flex overflow-hidden py-16 [--gap:3.5rem] [gap:var(--gap)] [--duration:60s]"
+            className="relative flex overflow-hidden py-16 [--gap:3.5rem] [gap:var(--gap)] [--duration:100s]"
             onMouseMove={(e) => {
               const { width, left } = e.currentTarget.getBoundingClientRect();
               const ratio = (e.clientX - left) / width;
