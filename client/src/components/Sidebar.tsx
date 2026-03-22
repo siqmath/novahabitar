@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useLang } from "@/contexts/LangContext";
 import { motion } from "framer-motion";
-import { settingsStore } from "@/lib/store";
+import { settingsApi } from "@/lib/apiClient";
 import {
   Home,
   FolderOpen,
@@ -38,7 +38,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      setShowHistory(settingsStore.get().historyPageVisible);
+      settingsApi.get().then((s) => setShowHistory(s.historyPageVisible)).catch(console.error);
     };
     handleStorageChange();
     window.addEventListener("storage", handleStorageChange);

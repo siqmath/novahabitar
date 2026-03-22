@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calendar, MapPin, Layers } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
 import { useLocation } from "wouter";
-import { contactStore, type ContactInfo } from "@/lib/store";
+import { contactApi, type ContactInfo } from "@/lib/apiClient";
 
 const HERO_IMAGE =
   "https://cdn.abacus.ai/images/82408a85-1d28-4ae0-a10b-32c472db4848.png";
@@ -28,7 +28,7 @@ export default function AnimatedHero() {
   const words = useMemo(() => t.hero.words, [t.hero.words]);
 
   useEffect(() => {
-    setContactInfo(contactStore.get());
+    contactApi.get().then(setContactInfo).catch(console.error);
   }, []);
 
   useEffect(() => {

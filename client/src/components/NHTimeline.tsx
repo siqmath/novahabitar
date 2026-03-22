@@ -15,7 +15,7 @@ import {
   motion,
 } from "framer-motion";
 import { ExternalLink } from "lucide-react";
-import { timelineStore, type TimelineEntry } from "@/lib/store";
+import { timelineApi, type TimelineEntry } from "@/lib/apiClient";
 import { useLang } from "@/contexts/LangContext";
 import { useLocation } from "wouter";
 
@@ -29,8 +29,10 @@ export function NHTimeline() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setEntries(timelineStore.getAll());
-    setMounted(true);
+    timelineApi.getAll().then((loaded) => {
+      setEntries(loaded);
+      setMounted(true);
+    }).catch(console.error);
   }, []);
 
   useEffect(() => {
