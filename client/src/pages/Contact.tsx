@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Instagram, Linkedin, ArrowLeft, Send, CheckCircle } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
-import { contactStore, type ContactInfo } from "@/lib/store";
+import { contactApi, type ContactInfo } from "@/lib/apiClient";
 import { useLocation } from "wouter";
 import Sidebar from "@/components/Sidebar";
 
@@ -28,13 +28,13 @@ const INTERESTS_EN = ["Project Consulting", "Partnership / Investment", "Project
 export default function Contact() {
   const { t, lang } = useLang();
   const [, navigate] = useLocation();
-  const [contact, setContact] = useState<ContactInfo>(contactStore.get());
+  const [contact, setContact] = useState<ContactInfo>({ email: "", phone: "", whatsapp: "", address: "", instagram: "", linkedin: "" });
   const [form, setForm] = useState<FormState>({ name: "", email: "", interest: "", message: "" });
   const [sent, setSent] = useState(false);
   const [focused, setFocused] = useState<string | null>(null);
 
   useEffect(() => {
-    setContact(contactStore.get());
+    contactApi.get().then(setContact).catch(console.error);
   }, []);
 
   const interests = lang === "en" ? INTERESTS_EN : INTERESTS_PT;

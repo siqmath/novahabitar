@@ -14,7 +14,7 @@ import ProjectCarousel from "@/components/ProjectCarousel";
 import { FeatureSteps } from "@/components/FeatureSteps";
 import { AboutSteps } from "@/components/AboutSteps";
 import OurHistory from "@/pages/OurHistory";
-import { partnerStore, contactStore, type Partner, type ContactInfo } from "@/lib/store";
+import { partnerApi, contactApi, type Partner, type ContactInfo } from "@/lib/apiClient";
 import { useLocation } from "wouter";
 import {
   ArrowRight,
@@ -77,9 +77,10 @@ export default function Home() {
   const [marqueeDir, setMarqueeDir] = useState<"normal" | "reverse" | "paused">("normal");
 
   useEffect(() => {
-    const featured = partnerStore.getFeatured();
-    setPartners(featured);
-    setContact(contactStore.get());
+    partnerApi.getAll().then((all) => {
+      setPartners(all.filter((p) => p.featured && p.active));
+    }).catch(console.error);
+    contactApi.get().then(setContact).catch(console.error);
   }, []);
 
   return (

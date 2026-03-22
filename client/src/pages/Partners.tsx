@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useLang } from "@/contexts/LangContext";
-import { partnerStore, type Partner } from "@/lib/store";
+import { partnerApi, type Partner } from "@/lib/apiClient";
 import { ArrowRight } from "lucide-react";
 import Sidebar from "@/components/Sidebar";
 
@@ -20,8 +20,9 @@ export default function Partners() {
   const [partners, setPartners] = useState<Partner[]>([]);
 
   useEffect(() => {
-    const all = partnerStore.getAll().filter((p) => p.active);
-    setPartners(all);
+    partnerApi.getAll().then((all) => {
+      setPartners(all.filter((p) => p.active));
+    }).catch(console.error);
   }, []);
 
   return (

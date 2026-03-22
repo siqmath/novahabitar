@@ -13,10 +13,12 @@ import {
   Link as LinkIcon, CheckCircle, Users
 } from "lucide-react";
 import {
-  projectStore, timelineStore, contactStore, partnerStore, settingsStore,
+  projectApi, partnerApi, timelineApi, contactApi, settingsApi,
+  type Project, type TimelineEntry, type ContactInfo, type Partner, type SiteSettings,
+} from "@/lib/apiClient";
+import {
   generateId, generateSlug,
   STATUS_LABELS, TYPE_LABELS,
-  type Project, type TimelineEntry, type ContactInfo, type Partner, type SiteSettings,
   type ProjectStatus, type ProjectType
 } from "@/lib/store";
 import { useLocation } from "wouter";
@@ -292,12 +294,12 @@ export default function Admin() {
         <div className="flex gap-3">
           <button
             onClick={() => {
-              if (confirm("Resetar todos os dados para o padrão? Isso apagará suas alterações locais.")) {
-                projectStore.reset();
-                partnerStore.reset();
-                timelineStore.reset();
-                contactStore.reset();
-                window.location.reload();
+              if (confirm("Resetar todos os dados para o padrão? Esta ação NÃO pode ser desfeita.")) {
+                fetch("/api/import", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ projects: [], partners: [], timeline: [], contact: { email: "", phone: "", whatsapp: "", address: "", instagram: "", linkedin: "" }, settings: { historyPageVisible: true } }),
+                }).then(() => window.location.reload());
               }
             }}
             style={{ ...btnStyle("ghost-sm"), color: "rgba(220,80,80,0.6)", borderColor: "rgba(220,80,80,0.15)" }}
@@ -356,12 +358,15 @@ export default function Admin() {
 
 function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Project | null>(null);
   const [form, setForm] = useState<Omit<Project, "id" | "createdAt">>(EMPTY_PROJECT);
   const [imageInput, setImageInput] = useState("");
   const [tagInput, setTagInput] = useState("");
 
-  useEffect(() => { setProjects(projectStore.getAll()); }, []);
+  useEffect(() => {
+    projectApi.getAll().then((data) => { setProjects(data); setLoading(false); }).catch(console.error);
+  }, []);
 
   const openNew = () => {
     setEditing({ id: generateId(), createdAt: new Date().toISOString(), ...EMPTY_PROJECT });
@@ -390,22 +395,25 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
     if (!editing) return;
     const slug = form.slug || generateSlug(form.title);
     const updated: Project = { ...editing, ...form, slug };
-    projectStore.save(updated);
-    setProjects(projectStore.getAll());
-    setEditing(null);
-    showToast("Projeto salvo!");
+    projectApi.save(updated).then(() => {
+      projectApi.getAll().then(setProjects).catch(console.error);
+      setEditing(null);
+      showToast("Projeto salvo!");
+    }).catch((err) => showToast("Erro ao salvar: " + err.message));
   };
 
   const handleDelete = (id: string) => {
     if (!confirm("Excluir este projeto?")) return;
-    projectStore.delete(id);
-    setProjects(projectStore.getAll());
-    showToast("Projeto excluído.");
+    projectApi.delete(id).then(() => {
+      projectApi.getAll().then(setProjects).catch(console.error);
+      showToast("Projeto excluído.");
+    }).catch(console.error);
   };
 
   const toggleFeatured = (p: Project) => {
-    projectStore.save({ ...p, featured: !p.featured });
-    setProjects(projectStore.getAll());
+    projectApi.save({ ...p, featured: !p.featured }).then(() => {
+      projectApi.getAll().then(setProjects).catch(console.error);
+    }).catch(console.error);
   };
 
   const addImage = () => {
@@ -745,16 +753,18 @@ function ProjectsTab({ showToast }: { showToast: (m: string) => void }) {
 
 function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<TimelineEntry | null>(null);
   const [form, setForm] = useState<Omit<TimelineEntry, "id" | "createdAt">>(EMPTY_TIMELINE);
   const [historyPageVisible, setHistoryPageVisible] = useState(true);
   const [subtitleForm, setSubtitleForm] = useState({ pt: "", en: "" });
 
-  useEffect(() => { 
-    setEntries(timelineStore.getAll()); 
-    const s = settingsStore.get();
-    setHistoryPageVisible(s.historyPageVisible);
-    setSubtitleForm({ pt: s.historySubtitle || "", en: s.historySubtitleEn || "" });
+  useEffect(() => {
+    timelineApi.getAll().then((data) => { setEntries(data); setLoading(false); }).catch(console.error);
+    settingsApi.get().then((s) => {
+      setHistoryPageVisible(s.historyPageVisible);
+      setSubtitleForm({ pt: s.historySubtitle || "", en: s.historySubtitleEn || "" });
+    }).catch(console.error);
   }, []);
 
   const openNew = () => {
@@ -777,17 +787,20 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
 
   const handleSave = () => {
     if (!editing) return;
-    timelineStore.save({ ...editing, ...form });
-    setEntries(timelineStore.getAll());
-    setEditing(null);
-    showToast("Entrada salva!");
+    const entry = { ...editing, ...form };
+    timelineApi.save(entry).then(() => {
+      timelineApi.getAll().then(setEntries).catch(console.error);
+      setEditing(null);
+      showToast("Entrada salva!");
+    }).catch((err) => showToast("Erro: " + err.message));
   };
 
   const handleDelete = (id: string) => {
     if (!confirm("Excluir esta entrada?")) return;
-    timelineStore.delete(id);
-    setEntries(timelineStore.getAll());
-    showToast("Entrada excluída.");
+    timelineApi.delete(id).then(() => {
+      timelineApi.getAll().then(setEntries).catch(console.error);
+      showToast("Entrada excluída.");
+    }).catch(console.error);
   };
 
   if (editing) {
@@ -845,15 +858,18 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
   const handleToggleVisibility = () => {
     const newVal = !historyPageVisible;
     setHistoryPageVisible(newVal);
-    const settings = settingsStore.get();
-    settingsStore.save({ ...settings, historyPageVisible: newVal });
+    settingsApi.get().then((s) => {
+      settingsApi.save({ ...s, historyPageVisible: newVal }).catch(console.error);
+    }).catch(console.error);
     showToast(newVal ? "Página 'Nossa História' ativada!" : "Página 'Nossa História' desativada!");
   };
 
   const handleSaveSubtitles = () => {
-    const settings = settingsStore.get();
-    settingsStore.save({ ...settings, historySubtitle: subtitleForm.pt, historySubtitleEn: subtitleForm.en });
-    showToast("Configurações da Linha do Tempo salvas!");
+    settingsApi.get().then((s) => {
+      settingsApi.save({ ...s, historySubtitle: subtitleForm.pt, historySubtitleEn: subtitleForm.en })
+        .then(() => showToast("Configurações salvas!"))
+        .catch(console.error);
+    }).catch(console.error);
   };
 
   return (
@@ -923,11 +939,14 @@ function TimelineTab({ showToast }: { showToast: (m: string) => void }) {
 function ContactTab({ showToast }: { showToast: (m: string) => void }) {
   const [form, setForm] = useState<ContactInfo>(EMPTY_CONTACT);
 
-  useEffect(() => { setForm(contactStore.get()); }, []);
+  useEffect(() => {
+    contactApi.get().then(setForm).catch(console.error);
+  }, []);
 
   const handleSave = () => {
-    contactStore.save(form);
-    showToast("Informações de contato salvas!");
+    contactApi.save(form)
+      .then(() => showToast("Informações de contato salvas!"))
+      .catch((err) => showToast("Erro: " + err.message));
   };
 
   const fields: { key: keyof ContactInfo; label: string; placeholder: string; type?: string }[] = [
@@ -967,7 +986,9 @@ function PartnersTab({ showToast }: { showToast: (m: string) => void }) {
   const [editing, setEditing] = useState<Partner | null>(null);
   const [form, setForm] = useState<Omit<Partner, "id" | "createdAt">>({ slug: "", name: "", logo: "", actuation: "", actuationEn: "", shortDescription: "", shortDescriptionEn: "", fullDescription: "", fullDescriptionEn: "", differentials: [], differentialsEn: [], website: "", active: true, featured: false, order: 0, gallery: [] });
 
-  useEffect(() => { setPartners(partnerStore.getAll()); }, []);
+  useEffect(() => {
+    partnerApi.getAll().then(setPartners).catch(console.error);
+  }, []);
 
   const openNew = () => {
     setEditing({ id: generateId(), createdAt: new Date().toISOString(), slug: "", name: "", logo: "", actuation: "", actuationEn: "", shortDescription: "", shortDescriptionEn: "", fullDescription: "", fullDescriptionEn: "", differentials: [], differentialsEn: [], website: "", active: true, featured: true, order: partners.length, gallery: [] });
@@ -993,17 +1014,20 @@ function PartnersTab({ showToast }: { showToast: (m: string) => void }) {
   const handleSave = () => {
     if (!editing) return;
     const slug = form.slug || generateSlug(form.name);
-    partnerStore.save({ ...editing, ...form, slug });
-    setPartners(partnerStore.getAll());
-    setEditing(null);
-    showToast("Parceiro salvo!");
+    const partner: Partner = { ...editing, ...form, slug };
+    partnerApi.save(partner).then(() => {
+      partnerApi.getAll().then(setPartners).catch(console.error);
+      setEditing(null);
+      showToast("Parceiro salvo!");
+    }).catch((err) => showToast("Erro: " + err.message));
   };
 
   const handleDelete = (id: string) => {
     if (!confirm("Excluir este parceiro?")) return;
-    partnerStore.delete(id);
-    setPartners(partnerStore.getAll());
-    showToast("Parceiro excluído.");
+    partnerApi.delete(id).then(() => {
+      partnerApi.getAll().then(setPartners).catch(console.error);
+      showToast("Parceiro excluído.");
+    }).catch(console.error);
   };
 
   if (editing) {

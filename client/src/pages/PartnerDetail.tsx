@@ -8,7 +8,7 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, ExternalLink, Check, Play, X } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { useLang } from "@/contexts/LangContext";
-import { partnerStore, type Partner } from "@/lib/store";
+import { partnerApi, type Partner } from "@/lib/apiClient";
 import Sidebar from "@/components/Sidebar";
 
 function isVideo(url: string) {
@@ -23,8 +23,9 @@ export default function PartnerDetail() {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
-    const p = partnerStore.getAll().find((x) => x.slug === params.slug);
-    setPartner(p ?? null);
+    partnerApi.getBySlug(params.slug)
+      .then(setPartner)
+      .catch(() => setPartner(null));
   }, [params.slug]);
 
   if (!partner) {

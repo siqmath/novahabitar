@@ -8,7 +8,8 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
 import { MapPin, ArrowRight } from "lucide-react";
-import { projectStore, STATUS_LABELS, STATUS_LABELS_EN, type Project } from "@/lib/store";
+import { projectApi, type Project } from "@/lib/apiClient";
+import { STATUS_LABELS, STATUS_LABELS_EN } from "@/lib/store";
 import { useLang } from "@/contexts/LangContext";
 
 const GOLD = "#C6A667";
@@ -32,8 +33,10 @@ export default function ProjectCarousel() {
   const TRANSITION_DURATION = 700;
 
   useEffect(() => {
-    const featured = projectStore.getFeatured();
-    setProjects(featured.length > 0 ? featured : projectStore.getAll().slice(0, 4));
+    projectApi.getAll().then((all) => {
+      const featured = all.filter((p) => p.featured);
+      setProjects(featured.length > 0 ? featured : all.slice(0, 4));
+    }).catch(console.error);
   }, []);
 
   const goToSlide = useCallback(

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { timelineStore, settingsStore, type TimelineEntry } from "@/lib/store";
+import { timelineApi, settingsApi, type TimelineEntry } from "@/lib/apiClient";
 import { Timeline } from "@/components/ui/timeline";
 import { useLang } from "@/contexts/LangContext";
 import { ArrowRight } from "lucide-react";
@@ -12,20 +12,15 @@ export default function OurHistory() {
   const [subtitleEn, setSubtitleEn] = useState("");
 
   useEffect(() => {
-    // Check if the history page is enabled in site settings
-    const settings = settingsStore.get();
-    setVisible(settings.historyPageVisible);
-    setSubtitle(settings.historySubtitle || "");
-    setSubtitleEn(settings.historySubtitleEn || "");
+    settingsApi.get().then((settings) => {
+      setVisible(settings.historyPageVisible);
+      setSubtitle(settings.historySubtitle || "");
+      setSubtitleEn(settings.historySubtitleEn || "");
+    }).catch(console.error);
 
-    // Load available entries sorted by date/id
-    const loaded = timelineStore.getAll().sort((a, b) => {
-      // Sort in descending order or ascending? 
-      // Timeline components usually look good descending (newest first). Let's go by ID or date.
-      // Easiest is to reverse load if they are stored chronologically.
-      return b.date.localeCompare(a.date);
-    });
-    setEntries(loaded);
+    timelineApi.getAll().then((loaded) => {
+      setEntries([...loaded].sort((a, b) => b.date.localeCompare(a.date)));
+    }).catch(console.error);
   }, []);
 
   if (!visible) {

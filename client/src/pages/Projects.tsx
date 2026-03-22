@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { Search, ChevronLeft, ArrowRight, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { projectStore, STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN, type Project, type ProjectStatus } from "@/lib/store";
+import { projectApi, type Project } from "@/lib/apiClient";
+import { STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN, type ProjectStatus } from "@/lib/store";
 import { useLang } from "@/contexts/LangContext";
 import { useLocation } from "wouter";
 import Sidebar from "@/components/Sidebar";
@@ -26,7 +27,7 @@ export default function Projects() {
   const [locationFilter, setLocationFilter] = useState<string>("all");
 
   useEffect(() => {
-    setProjects(projectStore.getAll());
+    projectApi.getAll().then(setProjects).catch(console.error);
   }, []);
 
   // Unique locations

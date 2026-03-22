@@ -8,7 +8,8 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, Play, X, Check, Building2, Ruler, Hash, MapPin, ExternalLink } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { useLang } from "@/contexts/LangContext";
-import { projectStore, type Project, STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN } from "@/lib/store";
+import { projectApi, type Project } from "@/lib/apiClient";
+import { STATUS_LABELS, STATUS_LABELS_EN, TYPE_LABELS, TYPE_LABELS_EN } from "@/lib/store";
 import Sidebar from "@/components/Sidebar";
 
 function isVideo(url: string) {
@@ -23,8 +24,9 @@ export default function ProjectDetail() {
   const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
-    const p = projectStore.getBySlug(params.slug);
-    setProject(p ?? null);
+    projectApi.getBySlug(params.slug)
+      .then(setProject)
+      .catch(() => setProject(null));
   }, [params.slug]);
 
   if (!project) {
